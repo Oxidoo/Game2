@@ -507,10 +507,11 @@ const key=(x,y)=>x+','+y;
 const TW=64, TH=32;          // taille des losanges iso
 const MW=17, MH=17;          // dimensions d'une carte
 const BASE_PA=6, BASE_PM=3;
-const ELEV=20;               // hauteur d'un niveau de relief, en pixels monde
+const ELEV=76;               // hauteur d'un niveau de relief (falaises massives)
 // tuiles : 0 herbe, 1 eau, 2 arbre, 3 rocher, 4 fontaine, 5 escalier,
-// 6 passerelle, 7 étal, 8 pont suspendu, 9 plateforme élévatrice,
-// 10 échelle, 11 vide (abîme), 12 colonne en ruine
+// 6 passerelle, 7 étal, 9 plateforme élévatrice, 10 échelle,
+// 11 vide (abîme), 12 colonne en ruine
+// les ponts sont des liaisons aériennes (map.links) : on circule dessous
 
 // ---------- Données : classes ----------
 const CLASSES={
@@ -811,8 +812,8 @@ function genMap(id){
       else{t[rp][i]=1;t[rp+1][i]=1;}
     }
   }
-  // lacs (blobs d'eau)
-  const nLakes=z.river?1:1+Math.floor(rng()*2);
+  // lacs (blobs d'eau) — aucun dans l'antre du roi, son plateau est sacré
+  const nLakes=z.river?1:(id==='2,2'?0:1+Math.floor(rng()*2));
   for(let l=0;l<nLakes;l++){
     const cx=3+Math.floor(rng()*(MW-6)), cy=3+Math.floor(rng()*(MH-6)), r=1+rng()*1.6;
     for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
@@ -832,14 +833,20 @@ function genMap(id){
       t[yy][xx]=t[yy][xx]===1?6:0;
     }
   }
-  // ---- relief : plateaux (2 niveaux), escaliers, pont suspendu, plateforme élévatrice ----
+  // ---- relief : 2-3 plateaux massifs par carte, sur 2 à 3 niveaux ----
   const onCorridor=(x,y)=>x===mid||x===mid-1||y===mid||y===mid-1;
-  const plateaus=[];
+  const plateaus=[];      // listes de cellules z1 (gouffres, ponts)
+  const plateauDefs=[];   // {cells,low,high} : chaque étage recevra ses accès
   const nP=2+Math.floor(rng()*2); // 2 à 3 plateaux
   for(let pi=0;pi<nP;pi++){
-    const pw=3+Math.floor(rng()*4), ph=3+Math.floor(rng()*3);
-    const x0=1+Math.floor(rng()*Math.max(1,MW-2-pw));
-    const y0=1+Math.floor(rng()*Math.max(1,MH-2-ph));
+    // le premier plateau de chaque carte est massif (étages z2/z3 possibles)
+    const first=pi===0;
+    const boss=first&&id==='2,2';
+    let pw=first?5+Math.floor(rng()*3):3+Math.floor(rng()*4);
+    let ph=first?4+Math.floor(rng()*2):3+Math.floor(rng()*3);
+    if(boss){pw=6;ph=6;} // l'antre du roi culmine sur 3 étages
+    const x0=boss?1:1+Math.floor(rng()*Math.max(1,MW-2-pw));
+    const y0=boss?1:1+Math.floor(rng()*Math.max(1,MH-2-ph));
     const cells=[];
     for(let yy=y0;yy<y0+ph;yy++)for(let xx=x0;xx<x0+pw;xx++){
       if(xx<1||yy<1||xx>=MW-1||yy>=MH-1)continue;
@@ -848,29 +855,11 @@ function genMap(id){
       zg[yy][xx]=1;cells.push([xx,yy]);
     }
     if(cells.length<4){for(const[xx,yy]of cells)zg[yy][xx]=0;continue;}
-    // 2 escaliers vers le sol, éloignés l'un de l'autre
-    const cand=[];
-    for(const[px,py]of cells)for(const[dx,dy]of DIRS){
-      const nx=px+dx,ny=py+dy;
-      if(nx<1||ny<1||nx>=MW-1||ny>=MH-1||zg[ny][nx]>0)continue;
-      if(t[ny][nx]!==0&&t[ny][nx]!==2&&t[ny][nx]!==3)continue;
-      cand.push([nx,ny,px,py]);
-    }
-    if(!cand.length){for(const[xx,yy]of cells)zg[yy][xx]=0;continue;}
     plateaus.push(cells);
-    const s1=cand[Math.floor(rng()*cand.length)];
-    let s2=s1,bd=-1;
-    for(const s of cand){
-      const d2=Math.abs(s[0]-s1[0])+Math.abs(s[1]-s1[1]);
-      if(d2>bd){bd=d2;s2=s;}
-    }
-    for(const s of[s1,s2]){
-      t[s[1]][s[0]]=5;zg[s[1]][s[0]]=0;
-      t[s[3]][s[2]]=0; // palier d'arrivée dégagé
-    }
+    plateauDefs.push({cells,low:0,high:1});
   }
-  // étage supérieur (z2) sur le plus grand plateau des zones sauvages
-  if(plateaus.length&&z.tier>0){
+  // étage z2 sur le plus grand plateau (toutes les zones)
+  if(plateaus.length){
     const big=plateaus.reduce((a,b)=>b.length>a.length?b:a);
     if(big.length>=8){
       const xs=big.map(c=>c[0]),ys=big.map(c=>c[1]);
@@ -880,16 +869,18 @@ function genMap(id){
       for(let yy=by0;yy<=by1;yy++)for(let xx=bx0;xx<=bx1;xx++){
         if(zg[yy][xx]===1&&t[yy][xx]!==5){zg[yy][xx]=2;top.push([xx,yy]);}
       }
-      const c2=[];
-      for(const[px,py]of top)for(const[dx,dy]of DIRS){
-        const nx=px+dx,ny=py+dy;
-        if(zg[ny]&&zg[ny][nx]===1&&(t[ny][nx]===0||t[ny][nx]===2||t[ny][nx]===3))c2.push([nx,ny,px,py]);
-      }
-      if(c2.length&&top.length){
-        const s=c2[Math.floor(rng()*c2.length)];
-        t[s[1]][s[0]]=5;t[s[3]][s[2]]=0;
-      }else{
-        for(const[xx,yy]of top)zg[yy][xx]=1;
+      if(top.length>=2)plateauDefs.push({cells:top,low:1,high:2});
+      else for(const[xx,yy]of top)zg[yy][xx]=1;
+      // sommet z3 dans l'antre du roi
+      if(id==='2,2'&&top.length>=8){
+        const xs3=top.map(c=>c[0]),ys3=top.map(c=>c[1]);
+        const t3=[];
+        for(let yy=Math.min(...ys3)+1;yy<=Math.max(...ys3)-1;yy++)
+          for(let xx=Math.min(...xs3)+1;xx<=Math.max(...xs3)-1;xx++){
+            if(zg[yy][xx]===2){zg[yy][xx]=3;t3.push([xx,yy]);}
+          }
+        if(t3.length>=2)plateauDefs.push({cells:t3,low:2,high:3});
+        else for(const[xx,yy]of t3)zg[yy][xx]=2;
       }
     }
   }
@@ -917,25 +908,37 @@ function genMap(id){
       }
     }
   }
-  const pontVoid=new Set();
-  // pont suspendu : part d'un plateau, enjambe le vide et débouche sur un belvédère 2×2
-  pont:for(let tries=0;tries<140;tries++){
+  // ---- ponts : liaisons aériennes entre plateaux, on circule DESSOUS ----
+  const links=[];
+  linkgen:for(let tries=0;tries<160&&links.length<2;tries++){
     if(!plateaus.length)break;
     const pl=plateaus[Math.floor(rng()*plateaus.length)];
     const[cx,cy]=pl[Math.floor(rng()*pl.length)];
-    if(t[cy][cx]===5||zg[cy][cx]!==1)continue;
+    const dz=zg[cy][cx];
+    if(dz<1||(t[cy][cx]!==0&&t[cy][cx]!==2&&t[cy][cx]!==3))continue;
     const dir=DIRS[Math.floor(rng()*4)];
-    const glen=2+Math.floor(rng()*3); // 2 à 4 cases de vide
+    const glen=2+Math.floor(rng()*4); // 2 à 5 cases enjambées
     const gap=[];
     let ok=true;
     for(let i=1;i<=glen;i++){
       const gx=cx+dir[0]*i,gy=cy+dir[1]*i;
-      if(gx<1||gy<1||gx>=MW-1||gy>=MH-1||onCorridor(gx,gy)||(t[gy][gx]!==0&&t[gy][gx]!==11)||zg[gy][gx]!==0){ok=false;break;}
-      gap.push([gx,gy]);
+      if(gx<1||gy<1||gx>=MW-1||gy>=MH-1||zg[gy][gx]>=dz){ok=false;break;}
+      const gt=t[gy][gx];
+      if(gt!==0&&gt!==1&&gt!==2&&gt!==3&&gt!==11&&gt!==6){ok=false;break;}
+      gap.push({x:gx,y:gy,z:dz});
     }
     if(!ok)continue;
     const lx=cx+dir[0]*(glen+1),ly=cy+dir[1]*(glen+1);
-    // chercher un bloc 2×2 libre contenant la case d'arrivée
+    if(lx<1||ly<1||lx>=MW-1||ly>=MH-1)continue;
+    // arrivée : un plateau existant au même niveau…
+    if(zg[ly][lx]===dz&&(t[ly][lx]===0||t[ly][lx]===2||t[ly][lx]===3)){
+      if(t[cy][cx]!==0)t[cy][cx]=0;
+      if(t[ly][lx]!==0)t[ly][lx]=0;
+      links.push({ax:cx,ay:cy,bx:lx,by:ly,z:dz,cells:gap});
+      continue linkgen;
+    }
+    // …ou un belvédère 2×2 construit pour l'occasion
+    if(dz!==1)continue;
     let land=null;
     for(const ox of[0,-1])for(const oy of[0,-1]){
       if(land)break;
@@ -943,63 +946,58 @@ function genMap(id){
       let good=true;
       for(let by2=0;by2<2;by2++)for(let bx2=0;bx2<2;bx2++){
         const ax=lx+ox+bx2,ay=ly+oy+by2;
-        if(ax<1||ay<1||ax>=MW-1||ay>=MH-1||onCorridor(ax,ay)||t[ay][ax]!==0||zg[ay][ax]!==0){good=false;}
+        if(ax<1||ay<1||ax>=MW-1||ay>=MH-1||onCorridor(ax,ay)||zg[ay][ax]!==0
+          ||(t[ay][ax]!==0&&t[ay][ax]!==2&&t[ay][ax]!==3)){good=false;}
         else blk.push([ax,ay]);
       }
       if(good&&blk.some(([ax,ay])=>ax===lx&&ay===ly))land=blk;
     }
     if(!land)continue;
-    // construire : tablier + belvédère + un escalier de descente
-    for(const[gx,gy]of gap){
-      if(t[gy][gx]===11)pontVoid.add(key(gx,gy));
-      t[gy][gx]=8;zg[gy][gx]=1;
-    }
-    for(const[ax,ay]of land)zg[ay][ax]=1;
-    if(t[cy][cx]===2||t[cy][cx]===3)t[cy][cx]=0;
-    for(const[ax,ay]of land)for(const[dx,dy]of DIRS){
-      const nx=ax+dx,ny=ay+dy;
-      if(nx<1||ny<1||nx>=MW-1||ny>=MH-1||zg[ny][nx]!==0)continue;
-      if(t[ny][nx]!==0&&t[ny][nx]!==2&&t[ny][nx]!==3)continue;
-      t[ny][nx]=5;t[ay][ax]=0;
-      break pont;
-    }
-    break pont;
+    for(const[ax,ay]of land){zg[ay][ax]=dz;t[ay][ax]=0;}
+    if(t[cy][cx]!==0)t[cy][cx]=0;
+    links.push({ax:cx,ay:cy,bx:lx,by:ly,z:dz,cells:gap});
   }
-  // plateforme élévatrice : accès mécanique à un plateau
-  elev:for(let tries=0;tries<70;tries++){
-    if(!plateaus.length)break;
-    const pl=plateaus[Math.floor(rng()*plateaus.length)];
-    const[px,py]=pl[Math.floor(rng()*pl.length)];
-    for(const[dx,dy]of DIRS){
-      const nx=px+dx,ny=py+dy;
-      if(nx<1||ny<1||nx>=MW-1||ny>=MH-1)continue;
-      if(zg[ny][nx]!==0||t[ny][nx]!==0||onCorridor(nx,ny))continue;
-      // il faut un accès au sol de l'autre côté
-      const ok=DIRS.some(([ex,ey])=>{
-        const ax=nx+ex,ay=ny+ey;
-        return ax>=0&&ay>=0&&ax<MW&&ay<MH&&zg[ay][ax]===0&&(t[ay][ax]===0||t[ay][ax]===6);
-      });
-      if(!ok)continue;
-      t[ny][nx]=9;
-      if(t[py][px]===2||t[py][px]===3)t[py][px]=0;
-      break elev;
+  // ---- accès : chaque étage reçoit 1 à 2 montées (escalier, échelle OU élévateur) ----
+  const usedAccess=[];
+  for(const pd of plateauDefs){
+    const dzA=pd.high-pd.low;
+    const cand=[];
+    for(const[px,py]of pd.cells){
+      if(zg[py][px]!==pd.high)continue;
+      if(t[py][px]!==0&&t[py][px]!==2&&t[py][px]!==3)continue;
+      for(const[dx,dy]of DIRS){
+        const nx=px+dx,ny=py+dy;
+        if(nx<1||ny<1||nx>=MW-1||ny>=MH-1)continue;
+        if(zg[ny][nx]!==pd.low)continue;
+        if(t[ny][nx]!==0&&t[ny][nx]!==2&&t[ny][nx]!==3)continue;
+        // échelle visible seulement si la paroi fait face à la caméra
+        cand.push({nx,ny,px,py,nw:(dx===1&&dy===0)||(dx===0&&dy===1)});
+      }
     }
-  }
-  // échelles adossées aux parois visibles (voisin haut au nord ou à l'ouest)
-  let nLad=0;
-  ladder:for(let tries=0;tries<130&&nLad<2;tries++){
-    const lx=1+Math.floor(rng()*(MW-2)),ly=1+Math.floor(rng()*(MH-2));
-    if(t[ly][lx]!==0||zg[ly][lx]!==0||onCorridor(lx,ly))continue;
-    for(const[dx,dy]of[[0,-1],[-1,0]]){
-      const nx=lx+dx,ny=ly+dy;
-      if(nx<1||ny<1)continue;
-      const dz2=zg[ny][nx]-zg[ly][lx];
-      if(dz2<1||dz2>2)continue;
-      if(t[ny][nx]!==0&&t[ny][nx]!==2&&t[ny][nx]!==3)continue;
-      t[ly][lx]=10;
-      if(t[ny][nx]!==0)t[ny][nx]=0;
-      nLad++;
-      continue ladder;
+    const hasLink=()=>links.some(L=>L.z===pd.high&&pd.cells.some(([xx,yy])=>(L.ax===xx&&L.ay===yy)||(L.bx===xx&&L.by===yy)));
+    if(!cand.length){
+      if(!hasLink())for(const[xx,yy]of pd.cells)if(zg[yy][xx]===pd.high)zg[yy][xx]=pd.low;
+      continue;
+    }
+    const want=1+(rng()<.5?1:0);
+    let placed=0;
+    for(let a=0;a<50&&placed<want;a++){
+      const c3=cand[Math.floor(rng()*cand.length)];
+      if(t[c3.ny][c3.nx]!==0&&t[c3.ny][c3.nx]!==2&&t[c3.ny][c3.nx]!==3)continue;
+      if(usedAccess.some(u=>Math.abs(u[0]-c3.nx)+Math.abs(u[1]-c3.ny)<3))continue;
+      let type;
+      const r3=rng();
+      if(dzA===1)type=r3<.55?5:(r3<.8?10:9);
+      else if(dzA===2)type=r3<.6?10:9;
+      else type=9;
+      if(type===10&&!c3.nw)type=9;
+      t[c3.ny][c3.nx]=type;
+      t[c3.py][c3.px]=0;
+      usedAccess.push([c3.nx,c3.ny]);
+      placed++;
+    }
+    if(!placed&&!hasLink()){
+      for(const[xx,yy]of pd.cells)if(zg[yy][xx]===pd.high)zg[yy][xx]=pd.low;
     }
   }
   // cascades : des falaises plongent dans l'abîme
@@ -1025,16 +1023,15 @@ function genMap(id){
       if(t[yy][xx]===2||t[yy][xx]===3)t[yy][xx]=0;
     }
   }
-  const map={id,tiles:t,zg,groups:[],npcs:[],zone:z,falls,pontVoid};
+  const map={id,tiles:t,zg,groups:[],npcs:[],zone:z,falls,links};
   if(z.tier===0)map.stallPos={x:mid+2,y:mid+2};
   // sécurité : toute case surélevée injoignable depuis le centre est aplanie
   const reach=floodReach(map,mid,mid);
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
-    if(zg[y][x]>=1&&walkable(map,x,y)&&!reach.has(key(x,y))){
-      zg[y][x]=0;
-      if(t[y][x]===8)t[y][x]=pontVoid.has(key(x,y))?11:0; // pont aplani
-    }
+    if(zg[y][x]>=1&&walkable(map,x,y)&&!reach.has(key(x,y)))zg[y][x]=0;
   }
+  // liaisons dont une extrémité a été aplanie
+  map.links=map.links.filter(L=>zg[L.ay][L.ax]===L.z&&zg[L.by][L.bx]===L.z);
   // escaliers, plateformes et échelles orphelins (plateau aplani) → herbe
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
     if(t[y][x]!==5&&t[y][x]!==9&&t[y][x]!==10)continue;
@@ -1088,6 +1085,11 @@ function floodReach(map,sx,sy){
       if(seen.has(k)||!canStep(map,c.x,c.y,nx,ny))continue;
       seen.add(k);q.push({x:nx,y:ny});
     }
+    for(const ex of linkExits(map,c.x,c.y)){
+      const k=key(ex.x,ex.y);
+      if(seen.has(k))continue;
+      seen.add(k);q.push({x:ex.x,y:ex.y});
+    }
   }
   return seen;
 }
@@ -1106,7 +1108,7 @@ function getMap(id){
 function walkable(map,x,y){
   if(x<0||y<0||x>=MW||y>=MH)return false;
   const t=map.tiles[y][x];
-  return t===0||t===4||t===5||t===6||t===8||t===9||t===10;
+  return t===0||t===4||t===5||t===6||t===9||t===10;
 }
 function blocksSight(map,x,y){
   const t=map.tiles[y][x];
@@ -1122,11 +1124,20 @@ function canStep(map,ax,ay,bx,by){
   const za=map.zg[ay][ax],zb=map.zg[by][bx];
   const dz=Math.abs(za-zb);
   if(dz===0)return true;
-  if(dz===1&&(map.tiles[ay][ax]===5||map.tiles[by][bx]===5))return true;
-  // plateforme élévatrice ou échelle : franchit jusqu'à 2 niveaux
   const ta=map.tiles[ay][ax],tb=map.tiles[by][bx];
-  if(dz<=2&&(ta===9||tb===9||ta===10||tb===10))return true;
+  if(dz===1&&(ta===5||tb===5))return true;      // escalier : 1 niveau
+  if(dz<=2&&(ta===10||tb===10))return true;     // échelle : jusqu'à 2 niveaux
+  if(dz<=3&&(ta===9||tb===9))return true;       // élévateur : jusqu'à 3 niveaux
   return false;
+}
+// liaisons aériennes (ponts) partant de cette case
+function linkExits(map,x,y){
+  const out=[];
+  for(const L of map.links||[]){
+    if(L.ax===x&&L.ay===y)out.push({x:L.bx,y:L.by,via:L.cells});
+    else if(L.bx===x&&L.by===y)out.push({x:L.ax,y:L.ay,via:[...L.cells].reverse()});
+  }
+  return out;
 }
 
 // ---------- Pathfinding ----------
@@ -1140,7 +1151,11 @@ function astar(map,sx,sy,tx,ty,blocked){
     const cur=open.shift();
     if(cur.x===tx&&cur.y===ty){
       const path=[];let n=cur;
-      while(n.p){path.unshift({x:n.x,y:n.y});n=n.p;}
+      while(n.p){
+        path.unshift({x:n.x,y:n.y});
+        if(n.via)path.unshift(...n.via);
+        n=n.p;
+      }
       return path;
     }
     for(const[dx,dy]of DIRS){
@@ -1152,6 +1167,15 @@ function astar(map,sx,sy,tx,ty,blocked){
       if(seen.has(k)&&seen.get(k)<=g)continue;
       seen.set(k,g);
       open.push({x:nx,y:ny,g,f:g+Math.abs(nx-tx)+Math.abs(ny-ty),p:cur});
+    }
+    // traversée d'un pont
+    for(const ex of linkExits(map,cur.x,cur.y)){
+      if(blocked&&blocked.has(key(ex.x,ex.y))&&!(ex.x===tx&&ex.y===ty))continue;
+      const g=cur.g+ex.via.length+1;
+      const k=key(ex.x,ex.y);
+      if(seen.has(k)&&seen.get(k)<=g)continue;
+      seen.set(k,g);
+      open.push({x:ex.x,y:ex.y,g,f:g+Math.abs(ex.x-tx)+Math.abs(ex.y-ty),p:cur,via:ex.via});
     }
     if(open.length>2000)return null;
   }
@@ -1169,6 +1193,15 @@ function bfsReach(map,sx,sy,maxD,blocked){
       if(blocked&&blocked.has(k))continue;
       res.set(k,{d:c.d+1,p:key(c.x,c.y),x:nx,y:ny});
       q.push({x:nx,y:ny,d:c.d+1});
+    }
+    // traversée d'un pont (coûte sa longueur)
+    for(const ex of linkExits(map,c.x,c.y)){
+      const cost=ex.via.length+1;
+      if(c.d+cost>maxD)continue;
+      const k=key(ex.x,ex.y);
+      if(res.has(k)||(blocked&&blocked.has(k)))continue;
+      res.set(k,{d:c.d+cost,p:key(c.x,c.y),x:ex.x,y:ex.y,via:ex.via});
+      q.push({x:ex.x,y:ex.y,d:c.d+cost});
     }
   }
   res.delete(key(sx,sy));
@@ -1741,7 +1774,8 @@ function updateWalk(ent,dt){
   const w=ent.walk;
   if(!w)return;
   const map=getMap(G.mapId);
-  w.t+=dt*1000/w.speed;
+  // un pas qui grimpe ou descend prend plus de temps (falaises hautes)
+  w.t+=dt*1000/w.speed/(w.sz!==undefined&&w.sz!==w.tz?2.1:1);
   const from=w.step===0?{x:ent.x,y:ent.y}:w.path[w.step-1];
   const to=w.path[w.step];
   if(!to){ent.walk=null;if(w.res)w.res();return;}
@@ -1750,7 +1784,8 @@ function updateWalk(ent,dt){
     w.curStep=w.step;
     w.sz=ent.pz;
     const fromT=map.tiles[from.y][from.x],toT=map.tiles[to.y][to.x];
-    w.tz=toT===9?ent.pz:zAt(map,to.x,to.y);
+    // les pas de traversée d'un pont portent leur hauteur explicite
+    w.tz=to.z!=null?to.z:(toT===9?ent.pz:zAt(map,to.x,to.y));
     w.mode=null;
     if(fromT===9||toT===9)w.mode='elev';
     else if(fromT===10||toT===10)w.mode='ladder';
@@ -1926,6 +1961,7 @@ async function monsterAI(m){
       const node=reach.get(k);
       if(!node)break;
       path.unshift({x:node.x,y:node.y});
+      if(node.via)path.unshift(...node.via);
       k=node.p;
     }
     if(!path.length)break;
@@ -2053,13 +2089,21 @@ function drawTileCell(map,x,y){
       ctx.moveTo(f.x0,f.y0);ctx.lineTo(f.x1,f.y1);
       ctx.lineTo(f.x1,f.y1+dpx);ctx.lineTo(f.x0,f.y0+dpx);
       ctx.closePath();ctx.fill();
-      // lignes de pierre sur les hautes parois
-      if(dep>=ELEV*2){
-        ctx.strokeStyle='rgba(30,22,10,.25)';ctx.lineWidth=1*DPR;
-        for(let li=1;li<=Math.min(4,Math.floor(dep/ELEV));li++){
+      // appareillage : assises de blocs empilés sur toute la paroi
+      {
+        const deepW=dep>(z||0)*ELEV+ELEV*1.2;
+        const course=ELEV/6*DPR;
+        const limit=deepW?dpx*.55:dpx-2*DPR;
+        ctx.strokeStyle='rgba(30,22,10,.3)';ctx.lineWidth=1*DPR;
+        for(let li=1;li*course<limit&&li<26;li++){
+          const yy2=li*course;
           ctx.beginPath();
-          ctx.moveTo(f.x0,f.y0+li*ELEV*DPR);ctx.lineTo(f.x1,f.y1+li*ELEV*DPR);
+          ctx.moveTo(f.x0,f.y0+yy2);ctx.lineTo(f.x1,f.y1+yy2);
           ctx.stroke();
+          // joints verticaux alternés (blocs en quinconce)
+          const jf=li%2?.35:.65;
+          const jx=lerp(f.x0,f.x1,jf),jy=lerp(f.y0,f.y1,jf);
+          ctx.beginPath();ctx.moveTo(jx,jy+yy2-course);ctx.lineTo(jx,jy+yy2);ctx.stroke();
         }
       }
       // lierre qui pend de certaines corniches
@@ -2113,48 +2157,6 @@ function drawTileCell(map,x,y){
       ctx.lineTo(sx+w*.4+k*6*DPR,sy-lift+h*.4+k*3*DPR);
       ctx.stroke();
     }
-  }else if(t===8){
-    // pont suspendu : sol (ou abîme) en dessous, tablier de planches en hauteur
-    const overVoid=map.pontVoid&&map.pontVoid.has(key(x,y));
-    const g0=screenPosE(x,y,0);
-    if(!overVoid){
-      diamond(g0.sx,g0.sy);
-      ctx.fillStyle=tileShade(x,y);ctx.fill();
-      ctx.strokeStyle='rgba(30,50,25,.25)';ctx.lineWidth=1;ctx.stroke();
-    }else{
-      const m0=screenPosE(x,y,-2.1);
-      const pulse=.14+.06*Math.sin(G.time*1.3+x*1.7+y*2.3);
-      const gm=ctx.createRadialGradient(m0.sx,m0.sy,2,m0.sx,m0.sy,TW*.9*DPR);
-      gm.addColorStop(0,`rgba(126,200,80,${pulse})`);
-      gm.addColorStop(1,'rgba(126,200,80,0)');
-      ctx.fillStyle=gm;
-      ctx.beginPath();ctx.ellipse(m0.sx,m0.sy,TW*.9*DPR,TH*.9*DPR,0,0,6.28);ctx.fill();
-    }
-    // piliers (qui s'évanouissent dans la brume au-dessus du vide)
-    const pierEnd=overVoid?sy+ELEV*2.2*DPR:g0.sy+2*DPR;
-    const pg=ctx.createLinearGradient(0,sy,0,pierEnd);
-    pg.addColorStop(0,'#4a3319');
-    pg.addColorStop(1,overVoid?'rgba(74,51,25,0)':'#4a3319');
-    ctx.strokeStyle=pg;ctx.lineWidth=3*DPR;
-    ctx.beginPath();ctx.moveTo(sx-w*.6,sy+3*DPR);ctx.lineTo(sx-w*.6,pierEnd);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(sx+w*.6,sy+3*DPR);ctx.lineTo(sx+w*.6,pierEnd);ctx.stroke();
-    // tablier
-    diamond(sx,sy,.98);
-    ctx.fillStyle='#a07a48';ctx.fill();
-    ctx.strokeStyle='#6b4a24';ctx.lineWidth=1.6*DPR;ctx.stroke();
-    ctx.strokeStyle='rgba(74,51,25,.5)';ctx.lineWidth=1*DPR;
-    for(let k=-1;k<=1;k++){
-      ctx.beginPath();
-      ctx.moveTo(sx-w*.5+k*7*DPR,sy-h*.4+k*3.5*DPR);
-      ctx.lineTo(sx+w*.4+k*7*DPR,sy+h*.4+k*3.5*DPR);
-      ctx.stroke();
-    }
-    // garde-corps
-    ctx.strokeStyle='#6b4a24';ctx.lineWidth=2*DPR;
-    ctx.beginPath();ctx.moveTo(sx-w,sy);ctx.lineTo(sx,sy-h);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(sx-w,sy-9*DPR);ctx.lineTo(sx,sy-h-9*DPR);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(sx-w,sy);ctx.lineTo(sx-w,sy-9*DPR);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(sx,sy-h);ctx.lineTo(sx,sy-h-9*DPR);ctx.stroke();
   }else if(t===9){
     // plateforme élévatrice : socle, mât, plateau mobile
     diamond(sx,sy);
@@ -2184,23 +2186,44 @@ function drawTileCell(map,x,y){
     ctx.fillStyle='#b98f56';ctx.fill();
     ctx.strokeStyle='#6b4a24';ctx.lineWidth=1.2*DPR;ctx.stroke();
   }else if(t===5){
-    // escalier : base en terre, marches vers la case voisine plus haute
+    // escalier massif : volée de marches taillée dans la falaise
     diamond(sx,sy);
     ctx.fillStyle='#8a6a3c';ctx.fill();
     ctx.strokeStyle='rgba(60,42,8,.4)';ctx.lineWidth=1;ctx.stroke();
-    let dir=null;
+    let dir=null,nz=z;
     for(const[dx,dy]of DIRS){
       const nx=x+dx,ny=y+dy;
-      if(nx>=0&&ny>=0&&nx<MW&&ny<MH&&map.zg[ny][nx]>z){dir=[dx,dy];break;}
+      if(nx>=0&&ny>=0&&nx<MW&&ny<MH&&map.zg[ny][nx]>z){dir=[dx,dy];nz=map.zg[ny][nx];break;}
     }
     if(dir){
-      for(let k=0;k<3;k++){
-        const fr=.18+k*.24;
-        const ox=(dir[0]-dir[1])*w*fr;
-        const oy=(dir[0]+dir[1])*h*fr;
-        diamond(sx+ox,sy+oy-((k+1)/3)*ELEV*DPR,.5-k*.06);
-        ctx.fillStyle=k%2?'#a88450':'#96733f';ctx.fill();
-        ctx.strokeStyle='rgba(60,42,8,.45)';ctx.lineWidth=1*DPR;ctx.stroke();
+      const rise=(nz-z)*ELEV*DPR;
+      const tx2=sx+(dir[0]-dir[1])*w, ty2=sy+(dir[0]+dir[1])*h-rise;
+      const pxo=(-dir[1]-dir[0])*w*.3, pyo=(-dir[1]+dir[0])*h*.3;
+      // flancs sombres sous la volée
+      ctx.fillStyle='#4e3a20';
+      ctx.beginPath();
+      ctx.moveTo(sx-pxo,sy-pyo);ctx.lineTo(tx2-pxo,ty2-pyo);ctx.lineTo(tx2-pxo,ty2-pyo+rise);
+      ctx.closePath();ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(sx+pxo,sy+pyo);ctx.lineTo(tx2+pxo,ty2+pyo);ctx.lineTo(tx2+pxo,ty2+pyo+rise);
+      ctx.closePath();ctx.fill();
+      // volée de marches
+      ctx.fillStyle='#96733f';
+      ctx.beginPath();
+      ctx.moveTo(sx+pxo,sy+pyo);
+      ctx.lineTo(tx2+pxo,ty2+pyo);
+      ctx.lineTo(tx2-pxo,ty2-pyo);
+      ctx.lineTo(sx-pxo,sy-pyo);
+      ctx.closePath();ctx.fill();
+      ctx.strokeStyle='rgba(60,42,8,.5)';ctx.lineWidth=1.4*DPR;ctx.stroke();
+      const steps=6*(nz-z);
+      ctx.strokeStyle='rgba(60,42,8,.55)';ctx.lineWidth=1.2*DPR;
+      for(let k=1;k<steps;k++){
+        const f2=k/steps;
+        const mx=lerp(sx,tx2,f2),my=lerp(sy,ty2,f2);
+        ctx.beginPath();
+        ctx.moveTo(mx+pxo,my+pyo);ctx.lineTo(mx-pxo,my-pyo);
+        ctx.stroke();
       }
     }
   }else if(t===10){
@@ -2243,6 +2266,44 @@ function drawTileCell(map,x,y){
       ctx.strokeStyle='rgba(30,50,25,.25)';ctx.lineWidth=1;ctx.stroke();
     }
   }
+}
+// tablier d'un pont-liaison (on circule librement dessous)
+function drawDeck(map,c,ldx,ldy){
+  const {sx,sy}=screenPosE(c.x,c.y,c.z);
+  const w=TW/2*DPR,h=TH/2*DPR;
+  // piliers jusqu'au sol, évanescents au-dessus de l'abîme
+  const isVoid=map.tiles[c.y][c.x]===11;
+  const groundY=isVoid?sy+(c.z+1.4)*ELEV*DPR:screenPosE(c.x,c.y,map.zg[c.y][c.x]).sy;
+  const pg=ctx.createLinearGradient(0,sy,0,groundY);
+  pg.addColorStop(0,'#4a3319');
+  pg.addColorStop(1,isVoid?'rgba(74,51,25,0)':'#3a280f');
+  ctx.strokeStyle=pg;ctx.lineWidth=3*DPR;
+  ctx.beginPath();ctx.moveTo(sx-w*.55,sy+2*DPR);ctx.lineTo(sx-w*.55,groundY);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(sx+w*.55,sy+2*DPR);ctx.lineTo(sx+w*.55,groundY);ctx.stroke();
+  // croisillon décoratif à mi-hauteur
+  if(!isVoid){
+    ctx.strokeStyle='rgba(74,51,25,.7)';ctx.lineWidth=2*DPR;
+    const my2=(sy+groundY)/2;
+    ctx.beginPath();ctx.moveTo(sx-w*.55,my2);ctx.lineTo(sx+w*.55,my2+8*DPR);ctx.stroke();
+  }
+  // tablier
+  diamond(sx,sy,.98);
+  ctx.fillStyle='#a07a48';ctx.fill();
+  ctx.strokeStyle='#6b4a24';ctx.lineWidth=1.6*DPR;ctx.stroke();
+  ctx.strokeStyle='rgba(74,51,25,.5)';ctx.lineWidth=1*DPR;
+  for(let k=-1;k<=1;k++){
+    ctx.beginPath();
+    ctx.moveTo(sx-w*.5+k*7*DPR,sy-h*.4+k*3.5*DPR);
+    ctx.lineTo(sx+w*.4+k*7*DPR,sy+h*.4+k*3.5*DPR);
+    ctx.stroke();
+  }
+  // garde-corps côté opposé à la caméra
+  const e=ldx!==0?[[sx,sy-h],[sx+w,sy]]:[[sx-w,sy],[sx,sy-h]];
+  ctx.strokeStyle='#6b4a24';ctx.lineWidth=2*DPR;
+  ctx.beginPath();ctx.moveTo(e[0][0],e[0][1]);ctx.lineTo(e[1][0],e[1][1]);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(e[0][0],e[0][1]-11*DPR);ctx.lineTo(e[1][0],e[1][1]-11*DPR);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(e[0][0],e[0][1]);ctx.lineTo(e[0][0],e[0][1]-11*DPR);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(e[1][0],e[1][1]);ctx.lineTo(e[1][0],e[1][1]-11*DPR);ctx.stroke();
 }
 // cascade animée qui plonge de la falaise dans la brume
 function drawFall(fl,z,sx,sy,w,h){
@@ -2350,6 +2411,13 @@ function collectHighlights(map,items){
           ctx.beginPath();ctx.arc(sx,sy,4*DPR,0,6.28);
           ctx.fillStyle='rgba(255,255,255,.85)';ctx.fill();
         });
+        if(node.via)for(const v of node.via){
+          hl(v.x,v.y,()=>{
+            const {sx,sy}=screenPosE(v.x,v.y,v.z);
+            ctx.beginPath();ctx.arc(sx,sy,4*DPR,0,6.28);
+            ctx.fillStyle='rgba(255,255,255,.85)';ctx.fill();
+          });
+        }
         k=node.p;
         if(k===key(G.player.x,G.player.y))break;
       }
@@ -2699,6 +2767,13 @@ function frame(t){
     if(tt===4)ents.push({d:x+y,pr:1,draw:()=>{const{sx,sy}=screenPos(xx,yy);drawFountain(sx,sy);}});
     if(tt===7)ents.push({d:x+y,pr:1,draw:()=>{const{sx,sy}=screenPos(xx,yy);drawStall(sx,sy);}});
     if(tt===12)ents.push({d:x+y,pr:1,draw:()=>{const{sx,sy}=screenPos(xx,yy);drawColumn(sx,sy,xx*41+yy*23);}});
+  }
+  // tabliers des ponts-liaisons (dessinés avant les entités du même rang)
+  if(map.links)for(const L of map.links){
+    const ldx=Math.sign(L.bx-L.ax),ldy=Math.sign(L.by-L.ay);
+    for(const cCell of L.cells){
+      ents.push({d:cCell.x+cCell.y,pr:.8,draw:()=>drawDeck(map,cCell,ldx,ldy)});
+    }
   }
   collectHighlights(map,ents);
   if(G.mode==='explore'){
@@ -3181,6 +3256,7 @@ cv.addEventListener('click',e=>{
       const n=C.reach.get(k);
       if(!n)break;
       path.unshift({x:n.x,y:n.y});
+      if(n.via)path.unshift(...n.via);
       k=n.p;
     }
     if(path.length){
@@ -3710,7 +3786,7 @@ buildTitle();
 window.EBRUME={G,C,startCombat,getMap,CLASSES,SPELLS,MONSTERS,ITEMS,NPCS,QUESTS,Music,AudioSys,
   startNewGame,beginFight,endTurn,selectSpell,castSpell,
   addItem,useItem,equipItem,buyItem,sellItem,openShop,quitToTitle,
-  canStep,zAt,toggleCenter,togglePanel,buildWorldMap,syncInv,
+  canStep,zAt,linkExits,toggleCenter,togglePanel,buildWorldMap,syncInv,
   sendChat,say,openNpcDialog,questStatus,questReady,syncQuests};
 </script>
 </body>

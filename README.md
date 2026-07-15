@@ -24,15 +24,18 @@ python3 -m http.server 8000
 - **Combat tactique** : 6 PA / 3 PM par tour, portées min/max, tirs en ligne,
   ligne de vue, zones d'effet en croix, poussée avec dégâts de collision,
   poison, entrave de PM, buff de dégâts, phase de placement, ordre d'initiative.
-- **Relief vertical** : chaque carte flotte au-dessus d'un abîme de brume
-  verte luminescente — les bords du monde plongent dans le vide, des gouffres
-  percent le sol et les grands plateaux, des cascades tombent des falaises,
-  des lucioles montent des profondeurs. Terrasses sur plusieurs étages
-  (sommets en dalles de pierre moussues, lierre sur les parois, colonnes en
-  ruine), escaliers, échelles plaquées aux falaises, passerelles, ponts
-  suspendus (parfois au-dessus du vide) et plateformes élévatrices — le
-  pathfinding, l'IA et les combats en tiennent compte (impossible de pousser
-  un ennemi à travers une falaise… mais on peut l'écraser contre).
+- **Relief vertical massif** : chaque carte flotte au-dessus d'un abîme de
+  brume verte — les bords du monde plongent dans le vide, des gouffres percent
+  le sol et les plateaux, des cascades tombent des falaises, des lucioles
+  montent des profondeurs. Les falaises font 10 à 15 blocs de haut
+  (appareillage de pierres en quinconce), avec 2 à 3 plateaux par carte sur
+  2 étages — 3 dans l'antre du Roi, une véritable ziggourat. Chaque étage
+  n'est accessible que par ses accès dédiés : une volée d'escalier taillée
+  dans la falaise, une échelle, ou une plateforme élévatrice. Les ponts sont
+  de vraies liaisons aériennes : on les traverse d'un plateau à l'autre et
+  on circule librement **dessous**. Le pathfinding, l'IA et les combats
+  gèrent tout cela (impossible de pousser un ennemi à travers une falaise…
+  mais on peut l'écraser contre).
 - **Animations de combat** : charge au corps à corps, rebond d'incantation,
   flash et onde de choc à l'impact, secousse d'écran.
 - **Chat** : touche Entrée, le message s'affiche en bulle au-dessus du

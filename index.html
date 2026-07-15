@@ -507,7 +507,10 @@ const key=(x,y)=>x+','+y;
 const TW=64, TH=32;          // taille des losanges iso
 const MW=17, MH=17;          // dimensions d'une carte
 const BASE_PA=6, BASE_PM=3;
-const ELEV=18;               // hauteur d'un niveau de relief, en pixels monde
+const ELEV=20;               // hauteur d'un niveau de relief, en pixels monde
+// tuiles : 0 herbe, 1 eau, 2 arbre, 3 rocher, 4 fontaine, 5 escalier,
+// 6 passerelle, 7 étal, 8 pont suspendu, 9 plateforme élévatrice,
+// 10 échelle, 11 vide (abîme), 12 colonne en ruine
 
 // ---------- Données : classes ----------
 const CLASSES={
@@ -890,6 +893,31 @@ function genMap(id){
       }
     }
   }
+  // ---- l'abîme : gouffres de brume verte creusés dans le sol ----
+  const nV=z.tier===0?2:2+Math.floor(rng()*3);
+  for(let v=0;v<nV;v++){
+    const vx=2+Math.floor(rng()*(MW-4)),vy=2+Math.floor(rng()*(MH-4)),vr=1.2+rng()*1.9;
+    for(let yy=1;yy<MH-1;yy++)for(let xx=1;xx<MW-1;xx++){
+      if(onCorridor(xx,yy)||zg[yy][xx]>0)continue;
+      if(t[yy][xx]!==0&&t[yy][xx]!==2&&t[yy][xx]!==3)continue;
+      if(z.tier===0&&(Math.abs(xx-mid)+Math.abs(yy-(mid-3))<3||Math.abs(xx-(mid+2))+Math.abs(yy-(mid+2))<3))continue;
+      const dd=Math.hypot(xx-vx,yy-vy)+rng()*.6;
+      if(dd<vr)t[yy][xx]=11;
+    }
+  }
+  // trous percés dans les grands plateaux
+  for(const pl of plateaus){
+    if(pl.length>=12&&rng()<.75){
+      for(let h2=0;h2<12;h2++){
+        const[hx,hy]=pl[Math.floor(rng()*pl.length)];
+        if(t[hy][hx]!==0)continue;
+        if(!DIRS.every(([dx,dy])=>zg[hy+dy]&&zg[hy+dy][hx+dx]===zg[hy][hx]&&t[hy+dy][hx+dx]!==5))continue;
+        t[hy][hx]=11;zg[hy][hx]=0;
+        break;
+      }
+    }
+  }
+  const pontVoid=new Set();
   // pont suspendu : part d'un plateau, enjambe le vide et débouche sur un belvédère 2×2
   pont:for(let tries=0;tries<140;tries++){
     if(!plateaus.length)break;
@@ -902,7 +930,7 @@ function genMap(id){
     let ok=true;
     for(let i=1;i<=glen;i++){
       const gx=cx+dir[0]*i,gy=cy+dir[1]*i;
-      if(gx<1||gy<1||gx>=MW-1||gy>=MH-1||onCorridor(gx,gy)||t[gy][gx]!==0||zg[gy][gx]!==0){ok=false;break;}
+      if(gx<1||gy<1||gx>=MW-1||gy>=MH-1||onCorridor(gx,gy)||(t[gy][gx]!==0&&t[gy][gx]!==11)||zg[gy][gx]!==0){ok=false;break;}
       gap.push([gx,gy]);
     }
     if(!ok)continue;
@@ -922,7 +950,10 @@ function genMap(id){
     }
     if(!land)continue;
     // construire : tablier + belvédère + un escalier de descente
-    for(const[gx,gy]of gap){t[gy][gx]=8;zg[gy][gx]=1;}
+    for(const[gx,gy]of gap){
+      if(t[gy][gx]===11)pontVoid.add(key(gx,gy));
+      t[gy][gx]=8;zg[gy][gx]=1;
+    }
     for(const[ax,ay]of land)zg[ay][ax]=1;
     if(t[cy][cx]===2||t[cy][cx]===3)t[cy][cx]=0;
     for(const[ax,ay]of land)for(const[dx,dy]of DIRS){
@@ -954,6 +985,37 @@ function genMap(id){
       break elev;
     }
   }
+  // échelles adossées aux parois visibles (voisin haut au nord ou à l'ouest)
+  let nLad=0;
+  ladder:for(let tries=0;tries<130&&nLad<2;tries++){
+    const lx=1+Math.floor(rng()*(MW-2)),ly=1+Math.floor(rng()*(MH-2));
+    if(t[ly][lx]!==0||zg[ly][lx]!==0||onCorridor(lx,ly))continue;
+    for(const[dx,dy]of[[0,-1],[-1,0]]){
+      const nx=lx+dx,ny=ly+dy;
+      if(nx<1||ny<1)continue;
+      const dz2=zg[ny][nx]-zg[ly][lx];
+      if(dz2<1||dz2>2)continue;
+      if(t[ny][nx]!==0&&t[ny][nx]!==2&&t[ny][nx]!==3)continue;
+      t[ly][lx]=10;
+      if(t[ny][nx]!==0)t[ny][nx]=0;
+      nLad++;
+      continue ladder;
+    }
+  }
+  // cascades : des falaises plongent dans l'abîme
+  const falls=[];
+  for(let y2=1;y2<MH-1&&falls.length<2;y2++)for(let x2=1;x2<MW-1&&falls.length<2;x2++){
+    if(zg[y2][x2]<1||t[y2][x2]!==0)continue;
+    if(t[y2+1][x2]===11&&rng()<.35)falls.push({x:x2,y:y2,face:'sw'});
+    else if(t[y2][x2+1]===11&&rng()<.35)falls.push({x:x2,y:y2,face:'se'});
+  }
+  // colonnes en ruine sur les hauteurs
+  let nCol=0;
+  for(let tries=0;tries<70&&nCol<3;tries++){
+    const cx2=1+Math.floor(rng()*(MW-2)),cy2=1+Math.floor(rng()*(MH-2));
+    if(zg[cy2][cx2]<1||t[cy2][cx2]!==0||onCorridor(cx2,cy2))continue;
+    t[cy2][cx2]=12;nCol++;
+  }
   // fontaine et étal du marchand au village
   if(z.tier===0){
     t[mid-3][mid]=4;
@@ -963,19 +1025,19 @@ function genMap(id){
       if(t[yy][xx]===2||t[yy][xx]===3)t[yy][xx]=0;
     }
   }
-  const map={id,tiles:t,zg,groups:[],npcs:[],zone:z};
+  const map={id,tiles:t,zg,groups:[],npcs:[],zone:z,falls,pontVoid};
   if(z.tier===0)map.stallPos={x:mid+2,y:mid+2};
   // sécurité : toute case surélevée injoignable depuis le centre est aplanie
   const reach=floodReach(map,mid,mid);
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
     if(zg[y][x]>=1&&walkable(map,x,y)&&!reach.has(key(x,y))){
       zg[y][x]=0;
-      if(t[y][x]===8)t[y][x]=0; // pont aplani → herbe
+      if(t[y][x]===8)t[y][x]=pontVoid.has(key(x,y))?11:0; // pont aplani
     }
   }
-  // escaliers et plateformes orphelins (plateau aplani) → herbe
+  // escaliers, plateformes et échelles orphelins (plateau aplani) → herbe
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
-    if(t[y][x]!==5&&t[y][x]!==9)continue;
+    if(t[y][x]!==5&&t[y][x]!==9&&t[y][x]!==10)continue;
     const up=DIRS.some(([dx,dy])=>{
       const nx=x+dx,ny=y+dy;
       return nx>=0&&ny>=0&&nx<MW&&ny<MH&&zg[ny][nx]>zg[y][x];
@@ -1044,11 +1106,11 @@ function getMap(id){
 function walkable(map,x,y){
   if(x<0||y<0||x>=MW||y>=MH)return false;
   const t=map.tiles[y][x];
-  return t===0||t===4||t===5||t===6||t===8||t===9;
+  return t===0||t===4||t===5||t===6||t===8||t===9||t===10;
 }
 function blocksSight(map,x,y){
   const t=map.tiles[y][x];
-  return t===2||t===3||t===7;
+  return t===2||t===3||t===7||t===12;
 }
 function zAt(map,x,y){
   const xi=clamp(Math.round(x),0,MW-1),yi=clamp(Math.round(y),0,MH-1);
@@ -1061,8 +1123,9 @@ function canStep(map,ax,ay,bx,by){
   const dz=Math.abs(za-zb);
   if(dz===0)return true;
   if(dz===1&&(map.tiles[ay][ax]===5||map.tiles[by][bx]===5))return true;
-  // la plateforme élévatrice vient vous chercher, quel que soit le niveau
-  if(dz<=2&&(map.tiles[ay][ax]===9||map.tiles[by][bx]===9))return true;
+  // plateforme élévatrice ou échelle : franchit jusqu'à 2 niveaux
+  const ta=map.tiles[ay][ax],tb=map.tiles[by][bx];
+  if(dz<=2&&(ta===9||tb===9||ta===10||tb===10))return true;
   return false;
 }
 
@@ -1686,8 +1749,11 @@ function updateWalk(ent,dt){
   if(w.curStep!==w.step){
     w.curStep=w.step;
     w.sz=ent.pz;
-    w.tz=map.tiles[to.y][to.x]===9?ent.pz:zAt(map,to.x,to.y);
-    w.fromElev=map.tiles[from.y][from.x]===9;
+    const fromT=map.tiles[from.y][from.x],toT=map.tiles[to.y][to.x];
+    w.tz=toT===9?ent.pz:zAt(map,to.x,to.y);
+    w.mode=null;
+    if(fromT===9||toT===9)w.mode='elev';
+    else if(fromT===10||toT===10)w.mode='ladder';
   }
   ent.face=to.x>from.x||to.y<from.y?1:(to.x<from.x||to.y>from.y?-1:ent.face);
   if(w.t>=1){
@@ -1711,15 +1777,28 @@ function updateWalk(ent,dt){
       if(p2&&p2.length){ent.walk={path:p2,step:0,t:0,res:null,speed:w.speed};}
       return;
     }
-  }else if(w.fromElev&&w.sz!==w.tz){
-    // la plateforme monte/descend d'abord, puis on sort dessus
-    if(w.t<.5){
-      ent.px=from.x;ent.py=from.y;
-      ent.pz=lerp(w.sz,w.tz,w.t*2);
+  }else if(w.mode&&w.sz!==w.tz){
+    // élévateur : le plateau monte/descend d'abord. échelle : on grimpe d'abord
+    // en montée, on marche d'abord en descente.
+    const vertFirst=w.mode==='elev'||w.tz>w.sz;
+    if(vertFirst){
+      if(w.t<.5){
+        ent.px=from.x;ent.py=from.y;
+        ent.pz=lerp(w.sz,w.tz,w.t*2);
+      }else{
+        ent.px=lerp(from.x,to.x,(w.t-.5)*2);
+        ent.py=lerp(from.y,to.y,(w.t-.5)*2);
+        ent.pz=w.tz;
+      }
     }else{
-      ent.px=lerp(from.x,to.x,(w.t-.5)*2);
-      ent.py=lerp(from.y,to.y,(w.t-.5)*2);
-      ent.pz=w.tz;
+      if(w.t<.5){
+        ent.px=lerp(from.x,to.x,w.t*2);
+        ent.py=lerp(from.y,to.y,w.t*2);
+        ent.pz=w.sz;
+      }else{
+        ent.px=to.x;ent.py=to.y;
+        ent.pz=lerp(w.sz,w.tz,(w.t-.5)*2);
+      }
     }
   }else{
     ent.px=lerp(from.x,to.x,w.t);
@@ -1899,7 +1978,7 @@ function cellFromScreen(mx,my){
   const wx=(mx*DPR-cv.width/2)/DPR+G.cam.x;
   const map=G.player?getMap(G.mapId):null;
   // on teste les niveaux du plus haut au plus bas pour viser les plateaux
-  for(let zz=2;zz>=0;zz--){
+  for(let zz=3;zz>=0;zz--){
     const wy=(my*DPR-cv.height/2)/DPR+G.cam.y+zz*ELEV;
     const gx=(wx/(TW/2)+wy/(TH/2))/2;
     const gy=(wy/(TH/2)-wx/(TW/2))/2;
@@ -1922,25 +2001,90 @@ function diamond(sx,sy,scale){
 const grassShades=['#7fb04a','#79aa46','#84b64f','#76a544','#81b24c'];
 function tileShade(x,y){return grassShades[(x*7+y*13)%grassShades.length];}
 
+// profondeur du mur d'une face selon le voisin (0 = pas de mur visible)
+// renvoie une profondeur « infinie » quand la face plonge dans l'abîme
+function faceDepth(map,x,y,z,nx,ny){
+  if(nx<0||ny<0||nx>=MW||ny>=MH)return (z+2.4)*ELEV; // bord du monde
+  if(map.tiles[ny][nx]===11)return (z+2.4)*ELEV;      // gouffre
+  const nz=map.zg[ny][nx];
+  return nz>=z?0:(z-nz)*ELEV;
+}
 // dessine une case (avec ses falaises si elle est surélevée)
 function drawTileCell(map,x,y){
   const t=map.tiles[y][x];
   const z=map.zg[y][x];
   const {sx,sy}=screenPosE(x,y,z);
-  if(sx<-90*DPR||sx>cv.width+90*DPR||sy<-120*DPR||sy>cv.height+90*DPR)return;
+  if(sx<-90*DPR||sx>cv.width+90*DPR||sy<-160*DPR||sy>cv.height+120*DPR)return;
   const w=TW/2*DPR,h=TH/2*DPR;
-  // falaises (faces sud-ouest et sud-est) — sauf sous les ponts, ouverts en dessous
-  if(z>0&&t!==8){
-    const d=z*ELEV*DPR;
-    ctx.beginPath();
-    ctx.moveTo(sx-w,sy);ctx.lineTo(sx,sy+h);ctx.lineTo(sx,sy+h+d);ctx.lineTo(sx-w,sy+d);
-    ctx.closePath();ctx.fillStyle='#5e4426';ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(sx,sy+h);ctx.lineTo(sx+w,sy);ctx.lineTo(sx+w,sy+d);ctx.lineTo(sx,sy+h+d);
-    ctx.closePath();ctx.fillStyle='#7c5b33';ctx.fill();
-    // liseré d'herbe en haut de falaise
-    ctx.strokeStyle='rgba(90,130,60,.8)';ctx.lineWidth=2*DPR;
-    ctx.beginPath();ctx.moveTo(sx-w,sy);ctx.lineTo(sx,sy+h);ctx.lineTo(sx+w,sy);ctx.stroke();
+  if(t===11){
+    // l'abîme : nappe de brume verte qui pulse en contrebas
+    const m0=screenPosE(x,y,-2.1);
+    const pulse=.15+.07*Math.sin(G.time*1.3+x*1.7+y*2.3);
+    const g=ctx.createRadialGradient(m0.sx,m0.sy,2,m0.sx,m0.sy,TW*.95*DPR);
+    g.addColorStop(0,`rgba(126,200,80,${pulse})`);
+    g.addColorStop(1,'rgba(126,200,80,0)');
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.ellipse(m0.sx,m0.sy,TW*.95*DPR,TH*.95*DPR,0,0,6.28);ctx.fill();
+    return;
+  }
+  // falaises par face : la profondeur dépend du voisin (terrasses, gouffres, bord du monde)
+  if(t!==8){
+    const faces=[
+      {nx:x,ny:y+1,x0:sx-w,y0:sy,x1:sx,y1:sy+h,base:'#5e4426'},   // face sud-ouest
+      {nx:x+1,ny:y,x0:sx,y0:sy+h,x1:sx+w,y1:sy,base:'#7c5b33'},   // face sud-est
+    ];
+    let anyWall=false;
+    for(const f of faces){
+      const dep=faceDepth(map,x,y,z,f.nx,f.ny);
+      if(dep<=0)continue;
+      anyWall=true;
+      const dpx=dep*DPR;
+      const topY=Math.min(f.y0,f.y1);
+      if(dep>(z||0)*ELEV+ELEV*1.2){ // paroi qui plonge dans la brume
+        const g=ctx.createLinearGradient(0,topY,0,topY+dpx);
+        g.addColorStop(0,f.base);
+        g.addColorStop(.5,'#2e2214');
+        g.addColorStop(1,'rgba(18,28,16,0)');
+        ctx.fillStyle=g;
+      }else{
+        ctx.fillStyle=f.base;
+      }
+      ctx.beginPath();
+      ctx.moveTo(f.x0,f.y0);ctx.lineTo(f.x1,f.y1);
+      ctx.lineTo(f.x1,f.y1+dpx);ctx.lineTo(f.x0,f.y0+dpx);
+      ctx.closePath();ctx.fill();
+      // lignes de pierre sur les hautes parois
+      if(dep>=ELEV*2){
+        ctx.strokeStyle='rgba(30,22,10,.25)';ctx.lineWidth=1*DPR;
+        for(let li=1;li<=Math.min(4,Math.floor(dep/ELEV));li++){
+          ctx.beginPath();
+          ctx.moveTo(f.x0,f.y0+li*ELEV*DPR);ctx.lineTo(f.x1,f.y1+li*ELEV*DPR);
+          ctx.stroke();
+        }
+      }
+      // lierre qui pend de certaines corniches
+      if(dep>=ELEV&&((x*31+y*17+f.nx*7)%4===0)){
+        ctx.strokeStyle='rgba(70,120,55,.7)';ctx.lineWidth=1.6*DPR;
+        for(let vi=0;vi<3;vi++){
+          const vt=.2+vi*.28;
+          const vx=lerp(f.x0,f.x1,vt),vy=lerp(f.y0,f.y1,vt);
+          const vl=(7+((x*7+vi*13+y*3)%10))*DPR;
+          ctx.beginPath();
+          ctx.moveTo(vx,vy+1*DPR);
+          ctx.quadraticCurveTo(vx+2*DPR,vy+vl*.6,vx-1.5*DPR,vy+vl);
+          ctx.stroke();
+        }
+      }
+    }
+    if(anyWall){
+      ctx.strokeStyle=z>=2?'rgba(110,140,95,.8)':'rgba(90,130,60,.8)';
+      ctx.lineWidth=2*DPR;
+      ctx.beginPath();ctx.moveTo(sx-w,sy);ctx.lineTo(sx,sy+h);ctx.lineTo(sx+w,sy);ctx.stroke();
+    }
+  }
+  // cascade accrochée à cette falaise
+  if(map.falls)for(const fl of map.falls){
+    if(fl.x===x&&fl.y===y)drawFall(fl,z,sx,sy,w,h);
   }
   if(t===1){
     const wob=Math.sin(G.time*1.8+x*.9+y*1.3)*.06;
@@ -1970,15 +2114,30 @@ function drawTileCell(map,x,y){
       ctx.stroke();
     }
   }else if(t===8){
-    // pont suspendu : sol visible en dessous, tablier de planches en hauteur
+    // pont suspendu : sol (ou abîme) en dessous, tablier de planches en hauteur
+    const overVoid=map.pontVoid&&map.pontVoid.has(key(x,y));
     const g0=screenPosE(x,y,0);
-    diamond(g0.sx,g0.sy);
-    ctx.fillStyle=tileShade(x,y);ctx.fill();
-    ctx.strokeStyle='rgba(30,50,25,.25)';ctx.lineWidth=1;ctx.stroke();
-    // piliers
-    ctx.strokeStyle='#4a3319';ctx.lineWidth=3*DPR;
-    ctx.beginPath();ctx.moveTo(sx-w*.6,sy+3*DPR);ctx.lineTo(sx-w*.6,g0.sy+2*DPR);ctx.stroke();
-    ctx.beginPath();ctx.moveTo(sx+w*.6,sy+3*DPR);ctx.lineTo(sx+w*.6,g0.sy+2*DPR);ctx.stroke();
+    if(!overVoid){
+      diamond(g0.sx,g0.sy);
+      ctx.fillStyle=tileShade(x,y);ctx.fill();
+      ctx.strokeStyle='rgba(30,50,25,.25)';ctx.lineWidth=1;ctx.stroke();
+    }else{
+      const m0=screenPosE(x,y,-2.1);
+      const pulse=.14+.06*Math.sin(G.time*1.3+x*1.7+y*2.3);
+      const gm=ctx.createRadialGradient(m0.sx,m0.sy,2,m0.sx,m0.sy,TW*.9*DPR);
+      gm.addColorStop(0,`rgba(126,200,80,${pulse})`);
+      gm.addColorStop(1,'rgba(126,200,80,0)');
+      ctx.fillStyle=gm;
+      ctx.beginPath();ctx.ellipse(m0.sx,m0.sy,TW*.9*DPR,TH*.9*DPR,0,0,6.28);ctx.fill();
+    }
+    // piliers (qui s'évanouissent dans la brume au-dessus du vide)
+    const pierEnd=overVoid?sy+ELEV*2.2*DPR:g0.sy+2*DPR;
+    const pg=ctx.createLinearGradient(0,sy,0,pierEnd);
+    pg.addColorStop(0,'#4a3319');
+    pg.addColorStop(1,overVoid?'rgba(74,51,25,0)':'#4a3319');
+    ctx.strokeStyle=pg;ctx.lineWidth=3*DPR;
+    ctx.beginPath();ctx.moveTo(sx-w*.6,sy+3*DPR);ctx.lineTo(sx-w*.6,pierEnd);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(sx+w*.6,sy+3*DPR);ctx.lineTo(sx+w*.6,pierEnd);ctx.stroke();
     // tablier
     diamond(sx,sy,.98);
     ctx.fillStyle='#a07a48';ctx.fill();
@@ -2044,11 +2203,102 @@ function drawTileCell(map,x,y){
         ctx.strokeStyle='rgba(60,42,8,.45)';ctx.lineWidth=1*DPR;ctx.stroke();
       }
     }
+  }else if(t===10){
+    // échelle : case au sol + montants et barreaux plaqués sur la paroi voisine
+    diamond(sx,sy);
+    ctx.fillStyle=tileShade(x,y);ctx.fill();
+    ctx.strokeStyle='rgba(30,50,25,.25)';ctx.lineWidth=1;ctx.stroke();
+    let dir=null,nz=0;
+    for(const[dx,dy]of[[0,-1],[-1,0],[1,0],[0,1]]){
+      const nx=x+dx,ny=y+dy;
+      if(nx>=0&&ny>=0&&nx<MW&&ny<MH&&map.zg[ny][nx]>z){dir=[dx,dy];nz=map.zg[ny][nx];break;}
+    }
+    if(dir){
+      const bx=sx+(dir[0]-dir[1])*w*.5;
+      const by=sy+(dir[0]+dir[1])*h*.5;
+      const topY=by-(nz-z)*ELEV*DPR-4*DPR;
+      ctx.strokeStyle='#8a5c2e';ctx.lineWidth=2.2*DPR;
+      ctx.beginPath();ctx.moveTo(bx-5*DPR,by);ctx.lineTo(bx-5*DPR,topY);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(bx+5*DPR,by);ctx.lineTo(bx+5*DPR,topY);ctx.stroke();
+      ctx.lineWidth=1.6*DPR;
+      const rungs=Math.floor((by-topY)/(6*DPR));
+      for(let r2=1;r2<rungs;r2++){
+        const ry=by-r2*6*DPR;
+        ctx.beginPath();ctx.moveTo(bx-5*DPR,ry);ctx.lineTo(bx+5*DPR,ry);ctx.stroke();
+      }
+    }
   }else{
     diamond(sx,sy);
-    ctx.fillStyle=t===4?'#8fbf9a':tileShade(x,y);
-    ctx.fill();
-    ctx.strokeStyle='rgba(30,50,25,.25)';ctx.lineWidth=1;ctx.stroke();
+    if(z>=2){ // dalles de pierre moussues sur les hauteurs
+      ctx.fillStyle=(x*3+y*5)%2?'#93a38c':'#899a84';
+      ctx.fill();
+      ctx.strokeStyle='rgba(50,70,45,.4)';ctx.lineWidth=1;ctx.stroke();
+      ctx.strokeStyle='rgba(40,60,40,.25)';ctx.lineWidth=1*DPR;
+      ctx.beginPath();
+      ctx.moveTo(sx-w*.4,sy-h*.1);ctx.lineTo(sx+w*.2,sy+h*.3);
+      ctx.stroke();
+    }else{
+      ctx.fillStyle=t===4?'#8fbf9a':(t===12?'#93a38c':tileShade(x,y));
+      ctx.fill();
+      ctx.strokeStyle='rgba(30,50,25,.25)';ctx.lineWidth=1;ctx.stroke();
+    }
+  }
+}
+// cascade animée qui plonge de la falaise dans la brume
+function drawFall(fl,z,sx,sy,w,h){
+  const ex=fl.face==='sw'?sx-w/2:sx+w/2;
+  const ey=fl.face==='sw'?sy+h/2:sy+h/2;
+  const len=(z+2.0)*ELEV*DPR;
+  const g=ctx.createLinearGradient(0,ey,0,ey+len);
+  g.addColorStop(0,'rgba(210,235,255,.75)');
+  g.addColorStop(.7,'rgba(180,220,245,.35)');
+  g.addColorStop(1,'rgba(160,210,240,0)');
+  ctx.fillStyle=g;
+  ctx.fillRect(ex-4*DPR,ey,8*DPR,len);
+  // filets d'eau qui défilent
+  ctx.fillStyle='rgba(255,255,255,.8)';
+  for(let k=0;k<3;k++){
+    const off=((G.time*46+k*23+fl.x*11)% (len/DPR))*DPR;
+    ctx.globalAlpha=.7*(1-off/len);
+    ctx.fillRect(ex-3*DPR+k*2.4*DPR,ey+off,1.6*DPR,7*DPR);
+  }
+  ctx.globalAlpha=1;
+  // écume au sommet
+  ctx.fillStyle='rgba(230,245,255,.85)';
+  ctx.beginPath();ctx.ellipse(ex,ey,5.5*DPR,2.6*DPR,0,0,6.28);ctx.fill();
+}
+// colonne en ruine
+function drawColumn(sx,sy,seed){
+  const r=mulberry32(seed);
+  const s=DPR*(0.85+r()*0.3);
+  const hgt=(26+r()*14)*s;
+  ctx.fillStyle='rgba(15,25,12,.35)';
+  ctx.beginPath();ctx.ellipse(sx,sy+2*s,10*s,4.5*s,0,0,6.28);ctx.fill();
+  // socle
+  ctx.fillStyle='#7e8a78';
+  ctx.beginPath();ctx.ellipse(sx,sy-1*s,8.5*s,4*s,0,0,6.28);ctx.fill();
+  // fût
+  const g=ctx.createLinearGradient(sx-6*s,0,sx+6*s,0);
+  g.addColorStop(0,'#6e7a68');g.addColorStop(.5,'#9aa892');g.addColorStop(1,'#5e6a58');
+  ctx.fillStyle=g;
+  ctx.fillRect(sx-5.5*s,sy-hgt,11*s,hgt);
+  // sommet brisé en dents de scie
+  ctx.fillStyle='#8a9a84';
+  ctx.beginPath();
+  ctx.moveTo(sx-5.5*s,sy-hgt);
+  ctx.lineTo(sx-2*s,sy-hgt-5*s);
+  ctx.lineTo(sx+1*s,sy-hgt-1*s);
+  ctx.lineTo(sx+4*s,sy-hgt-7*s);
+  ctx.lineTo(sx+5.5*s,sy-hgt);
+  ctx.closePath();ctx.fill();
+  // mousse
+  ctx.fillStyle='rgba(80,130,60,.55)';
+  ctx.beginPath();ctx.ellipse(sx-3*s,sy-hgt+3*s,3.5*s,2*s,.4,0,6.28);ctx.fill();
+  ctx.beginPath();ctx.ellipse(sx+3.5*s,sy-6*s,3*s,1.8*s,-.3,0,6.28);ctx.fill();
+  // cannelures
+  ctx.strokeStyle='rgba(50,60,45,.35)';ctx.lineWidth=1*s;
+  for(let i=-1;i<=1;i++){
+    ctx.beginPath();ctx.moveTo(sx+i*3.2*s,sy-2*s);ctx.lineTo(sx+i*3.2*s,sy-hgt+2*s);ctx.stroke();
   }
 }
 // surlignages tactiques, insérés dans la liste de profondeur
@@ -2430,8 +2680,13 @@ function frame(t){
   const targX=isoX(p.px,p.py),targY=isoY(p.px,p.py)-(p.pz||0)*ELEV;
   G.cam.x=lerp(G.cam.x,targX,Math.min(1,dt*5));
   G.cam.y=lerp(G.cam.y,targY,Math.min(1,dt*5));
-  // fond
-  ctx.fillStyle='#16241a';
+  // fond : nuit verte, halo de brume montant de l'abîme
+  ctx.fillStyle='#101a12';
+  ctx.fillRect(0,0,cv.width,cv.height);
+  const glow=ctx.createRadialGradient(cv.width/2,cv.height*1.08,10,cv.width/2,cv.height*1.08,cv.height*.85);
+  glow.addColorStop(0,'rgba(110,190,70,.16)');
+  glow.addColorStop(1,'rgba(110,190,70,0)');
+  ctx.fillStyle=glow;
   ctx.fillRect(0,0,cv.width,cv.height);
   // liste unique triée par profondeur : tuiles (pr 0), surlignages (pr .5), entités (pr 1)
   const ents=[];
@@ -2443,6 +2698,7 @@ function frame(t){
     if(tt===3)ents.push({d:x+y,pr:1,draw:()=>{const{sx,sy}=screenPos(xx,yy);drawRock(sx,sy,xx*13+yy*7);}});
     if(tt===4)ents.push({d:x+y,pr:1,draw:()=>{const{sx,sy}=screenPos(xx,yy);drawFountain(sx,sy);}});
     if(tt===7)ents.push({d:x+y,pr:1,draw:()=>{const{sx,sy}=screenPos(xx,yy);drawStall(sx,sy);}});
+    if(tt===12)ents.push({d:x+y,pr:1,draw:()=>{const{sx,sy}=screenPos(xx,yy);drawColumn(sx,sy,xx*41+yy*23);}});
   }
   collectHighlights(map,ents);
   if(G.mode==='explore'){
@@ -2556,6 +2812,21 @@ function frame(t){
   ents.sort((a,b)=>a.d-b.d||a.pr-b.pr);
   for(const e of ents)e.draw();
   drawExitArrows();
+  // lucioles qui montent de l'abîme
+  if(!G.flies)G.flies=[...Array(24)].map(()=>({
+    gx:rnd(-2,MW+1),gy:rnd(-2,MH+1),spd:rnd(.25,.55),ph:rnd(0,6.28),zo:rnd(0,3),
+  }));
+  for(const fl of G.flies){
+    fl.zo+=dt*fl.spd;
+    if(fl.zo>3.6){fl.zo=0;fl.gx=rnd(-2,MW+1);fl.gy=rnd(-2,MH+1);}
+    const {sx,sy}=screenPosE(fl.gx+Math.sin(G.time*.8+fl.ph)*.4,fl.gy,-2.4+fl.zo);
+    const a=.3*Math.min(1,fl.zo)*(1-fl.zo/3.6)*(0.6+0.4*Math.sin(G.time*3+fl.ph));
+    if(a<=0)continue;
+    ctx.globalAlpha=a;
+    ctx.fillStyle='#b8e878';
+    ctx.beginPath();ctx.arc(sx,sy,1.8*DPR,0,6.28);ctx.fill();
+    ctx.globalAlpha=1;
+  }
   // particules
   for(let i=G.sparks.length-1;i>=0;i--){
     const s=G.sparks[i];

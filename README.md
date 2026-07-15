@@ -24,9 +24,20 @@ python3 -m http.server 8000
 - **Combat tactique** : 6 PA / 3 PM par tour, portées min/max, tirs en ligne,
   ligne de vue, zones d'effet en croix, poussée avec dégâts de collision,
   poison, entrave de PM, buff de dégâts, phase de placement, ordre d'initiative.
-- **Relief** : plateaux surélevés avec falaises, escaliers pour y grimper,
-  passerelles en bois pour franchir rivières et lacs — le pathfinding et
-  les combats en tiennent compte.
+- **Relief** : plateaux sur deux étages avec falaises, escaliers, passerelles
+  au ras de l'eau, ponts suspendus avec garde-corps entre les plateaux, et
+  plateformes élévatrices en bois qui hissent le personnage d'un niveau à
+  l'autre — le pathfinding, l'IA et les combats en tiennent compte
+  (impossible de pousser un ennemi à travers une falaise… mais on peut
+  l'écraser contre).
+- **Animations de combat** : charge au corps à corps, rebond d'incantation,
+  flash et onde de choc à l'impact, secousse d'écran.
+- **Chat** : touche Entrée, le message s'affiche en bulle au-dessus du
+  personnage pendant 3,5 s (les PNJ et le marchand proches répondent) —
+  l'interface est prête pour un vrai multijoueur, qui nécessiterait un serveur.
+- **PNJ et quêtes** : quatre personnages (berger, garde, herboriste,
+  ancienne) donnent des quêtes de collecte et de chasse — marqueurs « ! » /
+  « ? », suivi à l'écran, récompenses en écus, expérience et objets.
 - **Musique dynamique** : thème d'exploration calme, thème de combat nerveux
   (synthétisés en WebAudio, réglables dans le menu).
 - **9 zones** reliées entre elles, du village paisible à l'Antre du Roi Bouloufe (boss),
@@ -43,7 +54,8 @@ python3 -m http.server 8000
 
 | Action | Commande |
 |---|---|
-| Se déplacer / attaquer un groupe / parler au marchand | clic gauche |
+| Se déplacer / attaquer / parler aux PNJ et au marchand | clic gauche |
+| Chat (bulle au-dessus du personnage) | `Entrée` |
 | Choisir un sort | clic sur la barre de sorts ou touches `1`–`5` |
 | Annuler le sort visé | clic droit ou `Échap` |
 | Fin de tour | bouton ou `Espace` |
@@ -53,9 +65,10 @@ python3 -m http.server 8000
 
 ## Technique
 
-HTML + CSS + JavaScript vanilla dans un unique `index.html` (~2 900 lignes).
-Rendu isométrique en Canvas 2D avec élévation (tri en profondeur tuiles/entités,
-falaises, escaliers, passerelles), sprites et icônes de sorts dessinés
-procéduralement, musique et effets synthétisés en WebAudio (séquenceur à deux
-thèmes), pathfinding A* et BFS sensibles au relief, ligne de vue par
-échantillonnage. Aucune ressource externe, aucune requête réseau.
+HTML + CSS + JavaScript vanilla dans un unique `index.html` (~3 400 lignes).
+Rendu isométrique en Canvas 2D avec élévation multi-niveaux (tri en profondeur
+tuiles/entités, falaises, escaliers, ponts suspendus, plateformes animées),
+sprites, PNJ et icônes de sorts dessinés procéduralement, musique et effets
+synthétisés en WebAudio (séquenceur à deux thèmes), pathfinding A* et BFS
+sensibles au relief, ligne de vue par échantillonnage, quêtes pilotées par les
+données. Aucune ressource externe, aucune requête réseau.

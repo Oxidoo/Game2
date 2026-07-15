@@ -321,6 +321,36 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--forest
   position:absolute;top:8px;right:10px;width:24px;height:24px;border-radius:6px;cursor:pointer;
   background:var(--walnut);color:var(--parchment);font:bold 13px/24px var(--font-ui);text-align:center;
 }
+/* ================= Chat ================= */
+#chatbar{position:absolute;left:12px;bottom:72px;width:300px;z-index:26;display:none;}
+#chatinput{
+  width:100%;box-sizing:border-box;padding:8px 11px;border-radius:8px;
+  border:2px solid var(--walnut);background:var(--parchment);
+  font:12px var(--font-ui);color:var(--ink);outline:none;
+}
+#chatinput:focus{border-color:var(--amber);box-shadow:0 0 0 2px rgba(232,163,61,.4);}
+/* ================= Quêtes ================= */
+#questlog{
+  position:absolute;top:70px;left:12px;width:212px;padding:10px 13px;z-index:14;display:none;
+}
+#questlog h4{margin:0 0 6px;font:bold 12px var(--font-disp);letter-spacing:.06em;text-transform:uppercase;color:#5c4a2a;border-bottom:1px solid var(--walnut2);padding-bottom:4px;}
+#questlog .qrow{font-size:11px;padding:3px 0;display:flex;justify-content:space-between;gap:6px;}
+#questlog .qrow b{font-weight:bold;}
+#questlog .qrow .qp{color:#7a5a10;font-weight:bold;font-variant-numeric:tabular-nums;white-space:nowrap;}
+#questlog .qrow.qready .qp{color:var(--mp);}
+/* ================= Dialogue PNJ ================= */
+#npcbox{width:400px;padding:18px 20px;position:relative;}
+#npchead{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+#npcface{width:64px;height:64px;border-radius:10px;border:2px solid var(--walnut);background:var(--moss);flex:none;}
+#npcname{margin:0;font:bold 18px var(--font-disp);}
+#npcquest{font-size:11px;color:#7a5a10;font-weight:bold;}
+#npctext{
+  font-size:13px;line-height:1.65;margin:0 0 12px;padding:10px 12px;
+  background:rgba(80,58,34,.08);border-radius:8px;border:1px solid rgba(80,58,34,.3);
+  font-style:italic;
+}
+#npcbtns{display:flex;gap:8px;justify-content:flex-end;}
+#npcbtns .mbtn{width:auto;display:inline-block;margin:0;padding:9px 18px;}
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01s !important;transition-duration:.01s !important;}
 }
@@ -355,6 +385,23 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--forest
   <div id="timeline"></div>
   <div id="log"></div>
   <div id="banner"></div>
+  <div id="questlog" class="panel"></div>
+  <div id="chatbar"><input id="chatinput" maxlength="120" placeholder="Votre message… (Entrée pour envoyer)" autocomplete="off"></div>
+
+  <div class="centerov" id="npcpanel">
+    <div id="npcbox" class="panel">
+      <div class="closex" data-close="npcpanel">✕</div>
+      <div id="npchead">
+        <canvas id="npcface" width="128" height="128"></canvas>
+        <div>
+          <h2 id="npcname">—</h2>
+          <div id="npcquest"></div>
+        </div>
+      </div>
+      <p id="npctext"></p>
+      <div id="npcbtns"></div>
+    </div>
+  </div>
 
   <div id="placebox" class="panel">
     <p>Choisissez votre position de départ (cases bleues)</p>
@@ -389,8 +436,9 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--forest
     <h3>Comment jouer</h3>
     <p><b>Exploration :</b> cliquez sur le sol pour vous déplacer. Cliquez sur un groupe de monstres pour l'attaquer. Les bords de carte mènent aux zones voisines. Les escaliers permettent de grimper sur les plateaux, les passerelles de franchir l'eau.</p>
     <p><b>Combat :</b> à votre tour, cliquez une case verte pour marcher (coûte des <b style="color:var(--mp)">PM</b>), choisissez un sort (<kbd>1</kbd>–<kbd>5</kbd>) puis cliquez une cible dans la zone bleue (coûte des <b style="color:var(--ap)">PA</b>). Une potion en combat coûte 2 PA.</p>
-    <p><b>Village :</b> la fontaine vous soigne, le marchand achète votre butin et vend équipement et potions.</p>
-    <p><kbd>Espace</kbd> fin de tour · <kbd>Échap</kbd> menu / annuler · <kbd>I</kbd> inventaire · <kbd>M</kbd> carte · <kbd>C</kbd> personnage</p>
+    <p><b>Village :</b> la fontaine vous soigne, le marchand achète votre butin et vend équipement et potions. Parlez aux personnages marqués d'un <b style="color:var(--amber)">!</b> pour obtenir des quêtes, revenez les voir avec un <b style="color:var(--amber2)">?</b>.</p>
+    <p><b>Relief :</b> escaliers pour grimper, ponts entre les plateaux, et plateformes élévatrices en bois qui vous hissent d'un niveau à l'autre.</p>
+    <p><kbd>Entrée</kbd> chat (bulle au-dessus de votre tête) · <kbd>Espace</kbd> fin de tour · <kbd>Échap</kbd> menu / annuler · <kbd>I</kbd> inventaire · <kbd>M</kbd> carte · <kbd>C</kbd> personnage</p>
   </div>
 
   <div class="centerov" id="menupanel">
@@ -558,6 +606,36 @@ const ITEMS={
 const EQUIP_SLOTS=['arme','armure','amulette','anneau'];
 function sellPrice(it){return it.sell||Math.floor((it.buy||0)/2);}
 
+// ---------- Données : PNJ & quêtes ----------
+const NPCS={
+  berger:{name:'Berger Tirou',map:'1,1',off:[-3,4],color:'#7a9e2f',hat:'straw',
+    lines:["Mes bouloufes ont encore filé vers la prairie…","Douce brume, hein ?","Ne caressez pas les Bouloufes sauvages."]},
+  ancienne:{name:'Ancienne Maëla',map:'1,1',off:[4,-4],color:'#8a5c8f',hat:'hood',
+    lines:["Les brumes murmurent, écoutez-les.","J'ai connu ce village avant le Roi Bouloufe…","Prudence au sud-est, voyageur."]},
+  garde:{name:'Garde Bram',map:'1,0',off:[3,2],color:'#3e7ab8',hat:'helm',
+    lines:["Halte ! Ah, ce n'est que vous.","Ces Zippiafs me rendent fou.","Restez sur les chemins."]},
+  herboriste:{name:'Herboriste Lys',map:'2,1',off:[-3,-3],color:'#43a047',hat:'flower',
+    lines:["Sentez-moi cette menthe sauvage !","Les spores de Champodo, ça se cueille avec des gants.","La nature donne à qui sait demander."]},
+};
+const QUESTS={
+  q_laine:{giver:'berger',name:'Laine douce',need:{item:'laine',n:3},reward:{gold:60,xp:90},
+    offer:"Mes tontes ont pris du retard et l'hiver approche… Rapportez-moi 3 Laines de Bouloufe, voulez-vous ? Les Bouloufes de la prairie en sont couverts.",
+    progress:"Alors, ces laines ? Il m'en faut trois belles.",
+    done:"Quelle qualité ! Voilà votre récompense, et merci du fond du cœur."},
+  q_zippiaf:{giver:'garde',name:'Chasse aux Zippiafs',need:{kill:'zippiaf',n:3},reward:{gold:80,xp:130},
+    offer:"Ces sales piafs jaunes picorent nos réserves ! Abattez-en 3 et je saurai me montrer généreux.",
+    progress:"Je les entends encore piailler… Continuez !",
+    done:"Enfin un peu de silence ! Tenez, vous l'avez bien mérité."},
+  q_spore:{giver:'herboriste',name:'Spores rares',need:{item:'spore',n:2},reward:{gold:70,xp:110,item:'potion2'},
+    offer:"Il me faut 2 Spores de Champodo pour mon remède contre la toux de brume. Ils poussent dans les zones sauvages… sur des champignons qui mordent.",
+    progress:"Deux spores, pas une de moins. Faites vite, on tousse au village !",
+    done:"Parfait ! Prenez cette potion majeure de ma réserve, et ces écus."},
+  q_roi:{giver:'ancienne',name:'La couronne du tyran',need:{kill:'roi',n:1},reward:{gold:400,xp:700},
+    offer:"Le Roi Bouloufe règne par la terreur depuis trop longtemps. Terrassez-le dans son antre, au sud-est, et les Terres respireront enfin.",
+    progress:"Le tyran laineux respire encore. Son antre est au sud-est, derrière la tourbière.",
+    done:"Vous l'avez fait… Les brumes elles-mêmes semblent plus légères. Acceptez ceci, héros d'Ébrume."},
+};
+
 // ---------- Données : monde (3×3) ----------
 const ZONES={
   '1,1':{name:'Bourg de Brume',sub:'Village — zone paisible',tier:0,seed:11},
@@ -700,6 +778,10 @@ const G={
   sparks:[],               // particules
   engage:null,             // groupe visé en exploration
   shopIntent:false,        // en marche vers le marchand
+  npcIntent:null,          // en marche vers un PNJ
+  bubbles:[],              // bulles de chat {ent,text,t}
+  npcT:8,                  // minuteur de répliques ambiantes des PNJ
+  shake:0,                 // secousse d'écran
   visited:new Set(['1,1']),
   won:false,
 };
@@ -747,41 +829,129 @@ function genMap(id){
       t[yy][xx]=t[yy][xx]===1?6:0;
     }
   }
-  // plateau surélevé avec escaliers
-  {
-    const pw=3+Math.floor(rng()*3), ph=3+Math.floor(rng()*2);
-    const x0=rng()<.5?1+Math.floor(rng()*Math.max(1,mid-2-pw)):mid+1+Math.floor(rng()*Math.max(1,MW-2-pw-mid));
-    const y0=rng()<.5?1+Math.floor(rng()*Math.max(1,mid-2-ph)):mid+1+Math.floor(rng()*Math.max(1,MH-2-ph-mid));
+  // ---- relief : plateaux (2 niveaux), escaliers, pont suspendu, plateforme élévatrice ----
+  const onCorridor=(x,y)=>x===mid||x===mid-1||y===mid||y===mid-1;
+  const plateaus=[];
+  const nP=2+Math.floor(rng()*2); // 2 à 3 plateaux
+  for(let pi=0;pi<nP;pi++){
+    const pw=3+Math.floor(rng()*4), ph=3+Math.floor(rng()*3);
+    const x0=1+Math.floor(rng()*Math.max(1,MW-2-pw));
+    const y0=1+Math.floor(rng()*Math.max(1,MH-2-ph));
     const cells=[];
     for(let yy=y0;yy<y0+ph;yy++)for(let xx=x0;xx<x0+pw;xx++){
       if(xx<1||yy<1||xx>=MW-1||yy>=MH-1)continue;
-      if(xx===mid||xx===mid-1||yy===mid||yy===mid-1)continue;
-      if(t[yy][xx]===1||t[yy][xx]===6)continue;
+      if(onCorridor(xx,yy))continue;
+      if(t[yy][xx]===1||t[yy][xx]===6||zg[yy][xx]>0)continue;
       zg[yy][xx]=1;cells.push([xx,yy]);
     }
-    // escaliers : cases du niveau 0 adjacentes au plateau
+    if(cells.length<4){for(const[xx,yy]of cells)zg[yy][xx]=0;continue;}
+    // 2 escaliers vers le sol, éloignés l'un de l'autre
     const cand=[];
-    for(const[px,py]of cells){
-      for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){
+    for(const[px,py]of cells)for(const[dx,dy]of DIRS){
+      const nx=px+dx,ny=py+dy;
+      if(nx<1||ny<1||nx>=MW-1||ny>=MH-1||zg[ny][nx]>0)continue;
+      if(t[ny][nx]!==0&&t[ny][nx]!==2&&t[ny][nx]!==3)continue;
+      cand.push([nx,ny,px,py]);
+    }
+    if(!cand.length){for(const[xx,yy]of cells)zg[yy][xx]=0;continue;}
+    plateaus.push(cells);
+    const s1=cand[Math.floor(rng()*cand.length)];
+    let s2=s1,bd=-1;
+    for(const s of cand){
+      const d2=Math.abs(s[0]-s1[0])+Math.abs(s[1]-s1[1]);
+      if(d2>bd){bd=d2;s2=s;}
+    }
+    for(const s of[s1,s2]){
+      t[s[1]][s[0]]=5;zg[s[1]][s[0]]=0;
+      t[s[3]][s[2]]=0; // palier d'arrivée dégagé
+    }
+  }
+  // étage supérieur (z2) sur le plus grand plateau des zones sauvages
+  if(plateaus.length&&z.tier>0){
+    const big=plateaus.reduce((a,b)=>b.length>a.length?b:a);
+    if(big.length>=8){
+      const xs=big.map(c=>c[0]),ys=big.map(c=>c[1]);
+      const bx0=Math.min(...xs)+1,bx1=Math.max(...xs)-1;
+      const by0=Math.min(...ys)+1,by1=Math.max(...ys)-1;
+      const top=[];
+      for(let yy=by0;yy<=by1;yy++)for(let xx=bx0;xx<=bx1;xx++){
+        if(zg[yy][xx]===1&&t[yy][xx]!==5){zg[yy][xx]=2;top.push([xx,yy]);}
+      }
+      const c2=[];
+      for(const[px,py]of top)for(const[dx,dy]of DIRS){
         const nx=px+dx,ny=py+dy;
-        if(nx<0||ny<0||nx>=MW||ny>=MH||zg[ny][nx]===1)continue;
-        if(t[ny][nx]!==0&&t[ny][nx]!==2&&t[ny][nx]!==3)continue;
-        cand.push([nx,ny,px,py]);
+        if(zg[ny]&&zg[ny][nx]===1&&(t[ny][nx]===0||t[ny][nx]===2||t[ny][nx]===3))c2.push([nx,ny,px,py]);
+      }
+      if(c2.length&&top.length){
+        const s=c2[Math.floor(rng()*c2.length)];
+        t[s[1]][s[0]]=5;t[s[3]][s[2]]=0;
+      }else{
+        for(const[xx,yy]of top)zg[yy][xx]=1;
       }
     }
-    if(cand.length){
-      const s1=cand[Math.floor(rng()*cand.length)];
-      let s2=s1,bd=-1;
-      for(const s of cand){
-        const d=Math.abs(s[0]-s1[0])+Math.abs(s[1]-s1[1]);
-        if(d>bd){bd=d;s2=s;}
+  }
+  // pont suspendu : part d'un plateau, enjambe le vide et débouche sur un belvédère 2×2
+  pont:for(let tries=0;tries<140;tries++){
+    if(!plateaus.length)break;
+    const pl=plateaus[Math.floor(rng()*plateaus.length)];
+    const[cx,cy]=pl[Math.floor(rng()*pl.length)];
+    if(t[cy][cx]===5||zg[cy][cx]!==1)continue;
+    const dir=DIRS[Math.floor(rng()*4)];
+    const glen=2+Math.floor(rng()*3); // 2 à 4 cases de vide
+    const gap=[];
+    let ok=true;
+    for(let i=1;i<=glen;i++){
+      const gx=cx+dir[0]*i,gy=cy+dir[1]*i;
+      if(gx<1||gy<1||gx>=MW-1||gy>=MH-1||onCorridor(gx,gy)||t[gy][gx]!==0||zg[gy][gx]!==0){ok=false;break;}
+      gap.push([gx,gy]);
+    }
+    if(!ok)continue;
+    const lx=cx+dir[0]*(glen+1),ly=cy+dir[1]*(glen+1);
+    // chercher un bloc 2×2 libre contenant la case d'arrivée
+    let land=null;
+    for(const ox of[0,-1])for(const oy of[0,-1]){
+      if(land)break;
+      const blk=[];
+      let good=true;
+      for(let by2=0;by2<2;by2++)for(let bx2=0;bx2<2;bx2++){
+        const ax=lx+ox+bx2,ay=ly+oy+by2;
+        if(ax<1||ay<1||ax>=MW-1||ay>=MH-1||onCorridor(ax,ay)||t[ay][ax]!==0||zg[ay][ax]!==0){good=false;}
+        else blk.push([ax,ay]);
       }
-      for(const s of[s1,s2]){
-        t[s[1]][s[0]]=5;zg[s[1]][s[0]]=0;
-        t[s[3]][s[2]]=0; // palier d'arrivée dégagé
-      }
-    }else{
-      for(const[xx,yy]of cells)zg[yy][xx]=0;
+      if(good&&blk.some(([ax,ay])=>ax===lx&&ay===ly))land=blk;
+    }
+    if(!land)continue;
+    // construire : tablier + belvédère + un escalier de descente
+    for(const[gx,gy]of gap){t[gy][gx]=8;zg[gy][gx]=1;}
+    for(const[ax,ay]of land)zg[ay][ax]=1;
+    if(t[cy][cx]===2||t[cy][cx]===3)t[cy][cx]=0;
+    for(const[ax,ay]of land)for(const[dx,dy]of DIRS){
+      const nx=ax+dx,ny=ay+dy;
+      if(nx<1||ny<1||nx>=MW-1||ny>=MH-1||zg[ny][nx]!==0)continue;
+      if(t[ny][nx]!==0&&t[ny][nx]!==2&&t[ny][nx]!==3)continue;
+      t[ny][nx]=5;t[ay][ax]=0;
+      break pont;
+    }
+    break pont;
+  }
+  // plateforme élévatrice : accès mécanique à un plateau
+  elev:for(let tries=0;tries<70;tries++){
+    if(!plateaus.length)break;
+    const pl=plateaus[Math.floor(rng()*plateaus.length)];
+    const[px,py]=pl[Math.floor(rng()*pl.length)];
+    for(const[dx,dy]of DIRS){
+      const nx=px+dx,ny=py+dy;
+      if(nx<1||ny<1||nx>=MW-1||ny>=MH-1)continue;
+      if(zg[ny][nx]!==0||t[ny][nx]!==0||onCorridor(nx,ny))continue;
+      // il faut un accès au sol de l'autre côté
+      const ok=DIRS.some(([ex,ey])=>{
+        const ax=nx+ex,ay=ny+ey;
+        return ax>=0&&ay>=0&&ax<MW&&ay<MH&&zg[ay][ax]===0&&(t[ay][ax]===0||t[ay][ax]===6);
+      });
+      if(!ok)continue;
+      t[ny][nx]=9;
+      if(t[py][px]===2||t[py][px]===3)t[py][px]=0;
+      break elev;
     }
   }
   // fontaine et étal du marchand au village
@@ -793,16 +963,19 @@ function genMap(id){
       if(t[yy][xx]===2||t[yy][xx]===3)t[yy][xx]=0;
     }
   }
-  const map={id,tiles:t,zg,groups:[],zone:z};
+  const map={id,tiles:t,zg,groups:[],npcs:[],zone:z};
   if(z.tier===0)map.stallPos={x:mid+2,y:mid+2};
   // sécurité : toute case surélevée injoignable depuis le centre est aplanie
   const reach=floodReach(map,mid,mid);
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
-    if(zg[y][x]===1&&walkable(map,x,y)&&!reach.has(key(x,y)))zg[y][x]=0;
+    if(zg[y][x]>=1&&walkable(map,x,y)&&!reach.has(key(x,y))){
+      zg[y][x]=0;
+      if(t[y][x]===8)t[y][x]=0; // pont aplani → herbe
+    }
   }
-  // escaliers orphelins (plateau aplani) → herbe
+  // escaliers et plateformes orphelins (plateau aplani) → herbe
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
-    if(t[y][x]!==5)continue;
+    if(t[y][x]!==5&&t[y][x]!==9)continue;
     const up=DIRS.some(([dx,dy])=>{
       const nx=x+dx,ny=y+dy;
       return nx>=0&&ny>=0&&nx<MW&&ny<MH&&zg[ny][nx]>zg[y][x];
@@ -825,6 +998,21 @@ function genMap(id){
       const lvl=z.tier===3?6:(z.tier*2-1+Math.floor(rng()*2));
       map.groups.push({x,y,comp,lvl,alive:true,defeatedAt:0,wobble:rng()*6.28});
     }
+  }
+  // PNJ de la zone
+  for(const[nid,npc]of Object.entries(NPCS)){
+    if(npc.map!==id)continue;
+    const px0=mid+npc.off[0],py0=mid+npc.off[1];
+    let placed=null;
+    outerNpc:for(let r=0;r<9;r++)for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+      const nx=px0+dx,ny=py0+dy;
+      if(nx<1||ny<1||nx>=MW-1||ny>=MH-1)continue;
+      if(t[ny][nx]!==0)continue;
+      if(!reach2.has(key(nx,ny)))continue;
+      if(map.groups.some(g=>g.x===nx&&g.y===ny))continue;
+      placed={id:nid,x:nx,y:ny};break outerNpc;
+    }
+    if(placed)map.npcs.push(placed);
   }
   return map;
 }
@@ -856,7 +1044,7 @@ function getMap(id){
 function walkable(map,x,y){
   if(x<0||y<0||x>=MW||y>=MH)return false;
   const t=map.tiles[y][x];
-  return t===0||t===4||t===5||t===6;
+  return t===0||t===4||t===5||t===6||t===8||t===9;
 }
 function blocksSight(map,x,y){
   const t=map.tiles[y][x];
@@ -873,6 +1061,8 @@ function canStep(map,ax,ay,bx,by){
   const dz=Math.abs(za-zb);
   if(dz===0)return true;
   if(dz===1&&(map.tiles[ay][ax]===5||map.tiles[by][bx]===5))return true;
+  // la plateforme élévatrice vient vous chercher, quel que soit le niveau
+  if(dz<=2&&(map.tiles[ay][ax]===9||map.tiles[by][bx]===9))return true;
   return false;
 }
 
@@ -948,6 +1138,7 @@ function newPlayer(clsId){
     walk:null, effects:[], alive:true,
     spells:cls.spells.map(id=>({id,cdLeft:0})),
     inv:{potion1:1}, equip:{arme:null,armure:null,amulette:null,anneau:null},
+    quests:{},
   };
 }
 function xpForLvl(n){return Math.round(60*(n-1)*(n-1)+50*(n-1));}
@@ -1069,7 +1260,7 @@ function saveGame(){
     cls:p.cls,lvl:p.lvl,xp:p.xp,gold:p.gold,hp:p.hp,
     map:G.mapId,x:p.x,y:p.y,won:G.won,
     muted:AudioSys.muted,musicOn:Music.on,sfxOn:AudioSys.sfxOn,
-    inv:p.inv,equip:p.equip,visited:[...G.visited],
+    inv:p.inv,equip:p.equip,quests:p.quests,visited:[...G.visited],
   }));}catch(e){}
 }
 function loadSlot(clsId){
@@ -1141,6 +1332,7 @@ function startCombat(group){
   closePanels();
   // placement des monstres autour du point du groupe
   const occupied=new Set([key(p.x,p.y)]);
+  for(const n of map.npcs||[])occupied.add(key(n.x,n.y));
   let gi=0;
   for(const mid of group.comp){
     const m=makeMonster(mid,group.lvl);
@@ -1188,6 +1380,8 @@ function curFighter(){return C.order[C.turnIdx];}
 function occupiedCells(except){
   const s=new Set();
   for(const f of C.fighters)if(f.alive&&f!==except)s.add(key(f.x,f.y));
+  const map=getMap(G.mapId);
+  for(const n of map.npcs||[])s.add(key(n.x,n.y));
   return s;
 }
 function nextTurn(){
@@ -1257,6 +1451,9 @@ function dealDamage(src,target,amount,isPoison){
     if(b)dmg=Math.round(dmg*(1+b.pct));
   }
   target.hp-=dmg;
+  target.flash=.3;
+  G.shake=Math.min(.6,G.shake+(target.kind==='player'?.3:.18));
+  G.sparks.push({ring:true,x:target.px,y:target.py,z:target.pz||0,t:0,life:.35,color:isPoison?'#7a9e2f':'#ffd0c4'});
   floatText(target.px,target.py,`-${dmg}`,isPoison?'#7a9e2f':'#ff6b5e');
   burst(target.px,target.py,isPoison?'#7a9e2f':'#d1493c',8);
   if(target.kind==='player')AudioSys.hurt();else AudioSys.hit();
@@ -1291,6 +1488,18 @@ function combatWon(){
     }
   }
   if(C.group){C.group.alive=false;C.group.defeatedAt=Date.now();}
+  // progression des quêtes de chasse
+  for(const m of monsters){
+    for(const[qid,q]of Object.entries(QUESTS)){
+      if(!q.need.kill||q.need.kill!==m.tpl)continue;
+      const ps=G.player.quests[qid];
+      if(ps&&ps.st==='active'&&ps.k<q.need.n){
+        ps.k++;
+        addLog(`Quête « ${q.name} » : ${ps.k}/${q.need.n}`,'#e8a33d');
+      }
+    }
+  }
+  syncQuests();
   endCombatUI();
   G.mode='explore';
   Music.play('explore');
@@ -1390,6 +1599,12 @@ async function castSpell(s,cx,cy){
   s.cdLeft=sp.cd;
   C.sel=null;C.targets=null;
   p.face=cx>=p.x?1:-1;
+  // animation : charge au contact, rebond d'incantation à distance
+  if(mdist(p,{x:cx,y:cy})<=1&&sp.type!=='heal'&&sp.type!=='buff'&&sp.type!=='jump'){
+    p.lunge={dx:Math.sign(cx-p.x),dy:Math.sign(cy-p.y),t:0};
+  }else{
+    p.castT=.35;
+  }
   AudioSys.cast();
   addLog(`${p.name} lance ${sp.name}`,CLASSES[p.cls].color);
   // petit délai visuel : projectile
@@ -1467,9 +1682,16 @@ function updateWalk(ent,dt){
   const from=w.step===0?{x:ent.x,y:ent.y}:w.path[w.step-1];
   const to=w.path[w.step];
   if(!to){ent.walk=null;if(w.res)w.res();return;}
+  // capture des hauteurs au début de chaque pas (la plateforme élévatrice suit le passager)
+  if(w.curStep!==w.step){
+    w.curStep=w.step;
+    w.sz=ent.pz;
+    w.tz=map.tiles[to.y][to.x]===9?ent.pz:zAt(map,to.x,to.y);
+    w.fromElev=map.tiles[from.y][from.x]===9;
+  }
   ent.face=to.x>from.x||to.y<from.y?1:(to.x<from.x||to.y>from.y?-1:ent.face);
   if(w.t>=1){
-    ent.x=to.x;ent.y=to.y;ent.px=to.x;ent.py=to.y;ent.pz=zAt(map,to.x,to.y);
+    ent.x=to.x;ent.y=to.y;ent.px=to.x;ent.py=to.y;ent.pz=w.tz;
     w.step++;w.t=0;
     AudioSys.step();
     if(ent.kind==='player'&&G.mode==='combat'&&C.phase==='fight'){
@@ -1489,10 +1711,20 @@ function updateWalk(ent,dt){
       if(p2&&p2.length){ent.walk={path:p2,step:0,t:0,res:null,speed:w.speed};}
       return;
     }
+  }else if(w.fromElev&&w.sz!==w.tz){
+    // la plateforme monte/descend d'abord, puis on sort dessus
+    if(w.t<.5){
+      ent.px=from.x;ent.py=from.y;
+      ent.pz=lerp(w.sz,w.tz,w.t*2);
+    }else{
+      ent.px=lerp(from.x,to.x,(w.t-.5)*2);
+      ent.py=lerp(from.y,to.y,(w.t-.5)*2);
+      ent.pz=w.tz;
+    }
   }else{
     ent.px=lerp(from.x,to.x,w.t);
     ent.py=lerp(from.y,to.y,w.t);
-    ent.pz=lerp(zAt(map,from.x,from.y),zAt(map,to.x,to.y),w.t);
+    ent.pz=lerp(w.sz,w.tz,w.t);
   }
 }
 
@@ -1501,6 +1733,7 @@ function exploreBlocked(){
   const map=getMap(G.mapId);
   const s=new Set();
   for(const g of map.groups)if(g.alive)s.add(key(g.x,g.y));
+  for(const n of map.npcs||[])s.add(key(n.x,n.y));
   return s;
 }
 function onPlayerArrive(){
@@ -1529,6 +1762,13 @@ function onPlayerArrive(){
     G.shopIntent=false;
     if(map.stallPos&&mdist(p,map.stallPos)<=1)openShop();
   }
+  // arrivée auprès d'un PNJ
+  if(G.npcIntent){
+    const nid=G.npcIntent;
+    G.npcIntent=null;
+    const n=(map.npcs||[]).find(n=>n.id===nid);
+    if(n&&mdist(p,n)<=1)openNpcDialog(nid);
+  }
   // sorties de carte
   const [mx,my]=G.mapId.split(',').map(Number);
   let nid=null,nx=p.x,ny=p.y;
@@ -1550,7 +1790,8 @@ function changeMap(id,x,y){
     }
   }
   p.x=x;p.y=y;p.px=x;p.py=y;p.pz=zAt(map,x,y);
-  p.walk=null;G.pendingTarget=null;G.engage=null;G.shopIntent=false;
+  p.walk=null;G.pendingTarget=null;G.engage=null;G.shopIntent=false;G.npcIntent=null;
+  G.bubbles=[];
   G.visited.add(id);
   document.getElementById('zonename').textContent=map.zone.name;
   document.getElementById('zonesub').textContent=map.zone.sub;
@@ -1575,7 +1816,12 @@ async function monsterAI(m){
       attacks--;
       m.face=p.x>=m.x?1:-1;
       addLog(`${m.name} utilise ${MONSTERS[m.tpl].atkName}`,'#d1493c');
-      if(m.rmax>1)await projectile(m.px,m.py,p.x,p.y,'#d1662e');
+      if(m.rmax>1){
+        m.castT=.3;
+        await projectile(m.px,m.py,p.x,p.y,'#d1662e');
+      }else{
+        m.lunge={dx:Math.sign(p.x-m.x),dy:Math.sign(p.y-m.y),t:0};
+      }
       await wait(200);
       dealDamage(m,p,ri(m.dmg[0],m.dmg[1]));
       await wait(400);
@@ -1636,15 +1882,24 @@ function screenPos(x,y){
 // position écran avec hauteur explicite (entités en mouvement, projectiles…)
 function screenPosE(x,y,z){
   return {
-    sx:(isoX(x,y)-G.cam.x)*DPR+cv.width/2,
-    sy:(isoY(x,y)-(z||0)*ELEV-G.cam.y)*DPR+cv.height/2,
+    sx:(isoX(x,y)-G.cam.x-(G.cam.ox||0))*DPR+cv.width/2,
+    sy:(isoY(x,y)-(z||0)*ELEV-G.cam.y-(G.cam.oy||0))*DPR+cv.height/2,
   };
+}
+// entité posée sur une case (pour animer la plateforme élévatrice)
+function riderAt(x,y){
+  if(G.mode==='combat'){
+    for(const f of C.fighters)if(f.alive&&Math.round(f.px)===x&&Math.round(f.py)===y)return f;
+  }
+  const p=G.player;
+  if(p&&Math.round(p.px)===x&&Math.round(p.py)===y)return p;
+  return null;
 }
 function cellFromScreen(mx,my){
   const wx=(mx*DPR-cv.width/2)/DPR+G.cam.x;
   const map=G.player?getMap(G.mapId):null;
   // on teste les niveaux du plus haut au plus bas pour viser les plateaux
-  for(let zz=1;zz>=0;zz--){
+  for(let zz=2;zz>=0;zz--){
     const wy=(my*DPR-cv.height/2)/DPR+G.cam.y+zz*ELEV;
     const gx=(wx/(TW/2)+wy/(TH/2))/2;
     const gy=(wy/(TH/2)-wx/(TW/2))/2;
@@ -1674,8 +1929,8 @@ function drawTileCell(map,x,y){
   const {sx,sy}=screenPosE(x,y,z);
   if(sx<-90*DPR||sx>cv.width+90*DPR||sy<-120*DPR||sy>cv.height+90*DPR)return;
   const w=TW/2*DPR,h=TH/2*DPR;
-  // falaises (faces sud-ouest et sud-est)
-  if(z>0){
+  // falaises (faces sud-ouest et sud-est) — sauf sous les ponts, ouverts en dessous
+  if(z>0&&t!==8){
     const d=z*ELEV*DPR;
     ctx.beginPath();
     ctx.moveTo(sx-w,sy);ctx.lineTo(sx,sy+h);ctx.lineTo(sx,sy+h+d);ctx.lineTo(sx-w,sy+d);
@@ -1714,6 +1969,61 @@ function drawTileCell(map,x,y){
       ctx.lineTo(sx+w*.4+k*6*DPR,sy-lift+h*.4+k*3*DPR);
       ctx.stroke();
     }
+  }else if(t===8){
+    // pont suspendu : sol visible en dessous, tablier de planches en hauteur
+    const g0=screenPosE(x,y,0);
+    diamond(g0.sx,g0.sy);
+    ctx.fillStyle=tileShade(x,y);ctx.fill();
+    ctx.strokeStyle='rgba(30,50,25,.25)';ctx.lineWidth=1;ctx.stroke();
+    // piliers
+    ctx.strokeStyle='#4a3319';ctx.lineWidth=3*DPR;
+    ctx.beginPath();ctx.moveTo(sx-w*.6,sy+3*DPR);ctx.lineTo(sx-w*.6,g0.sy+2*DPR);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(sx+w*.6,sy+3*DPR);ctx.lineTo(sx+w*.6,g0.sy+2*DPR);ctx.stroke();
+    // tablier
+    diamond(sx,sy,.98);
+    ctx.fillStyle='#a07a48';ctx.fill();
+    ctx.strokeStyle='#6b4a24';ctx.lineWidth=1.6*DPR;ctx.stroke();
+    ctx.strokeStyle='rgba(74,51,25,.5)';ctx.lineWidth=1*DPR;
+    for(let k=-1;k<=1;k++){
+      ctx.beginPath();
+      ctx.moveTo(sx-w*.5+k*7*DPR,sy-h*.4+k*3.5*DPR);
+      ctx.lineTo(sx+w*.4+k*7*DPR,sy+h*.4+k*3.5*DPR);
+      ctx.stroke();
+    }
+    // garde-corps
+    ctx.strokeStyle='#6b4a24';ctx.lineWidth=2*DPR;
+    ctx.beginPath();ctx.moveTo(sx-w,sy);ctx.lineTo(sx,sy-h);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(sx-w,sy-9*DPR);ctx.lineTo(sx,sy-h-9*DPR);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(sx-w,sy);ctx.lineTo(sx-w,sy-9*DPR);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(sx,sy-h);ctx.lineTo(sx,sy-h-9*DPR);ctx.stroke();
+  }else if(t===9){
+    // plateforme élévatrice : socle, mât, plateau mobile
+    diamond(sx,sy);
+    ctx.fillStyle='#8a8578';ctx.fill();
+    ctx.strokeStyle='rgba(40,35,25,.5)';ctx.lineWidth=1;ctx.stroke();
+    let maxZ=1;
+    for(const[dx,dy]of DIRS){
+      const nx=x+dx,ny=y+dy;
+      if(nx>=0&&ny>=0&&nx<MW&&ny<MH)maxZ=Math.max(maxZ,map.zg[ny][nx]);
+    }
+    const rider=riderAt(x,y);
+    const ph=rider?rider.pz:((Math.sin(G.time*.8+x*2+y)+1)/2)*maxZ;
+    const py2=sy-ph*ELEV*DPR;
+    // mât et traverse
+    ctx.strokeStyle='#4a3319';ctx.lineWidth=3.5*DPR;
+    ctx.beginPath();ctx.moveTo(sx-w*.8,sy);ctx.lineTo(sx-w*.8,sy-(maxZ*ELEV+26)*DPR);ctx.stroke();
+    ctx.lineWidth=2.5*DPR;
+    ctx.beginPath();ctx.moveTo(sx-w*.8,sy-(maxZ*ELEV+26)*DPR);ctx.lineTo(sx,sy-(maxZ*ELEV+30)*DPR);ctx.stroke();
+    // corde
+    ctx.strokeStyle='#c9b78a';ctx.lineWidth=1.4*DPR;
+    ctx.beginPath();ctx.moveTo(sx,sy-(maxZ*ELEV+30)*DPR);ctx.lineTo(sx,py2-3*DPR);ctx.stroke();
+    // plateau
+    diamond(sx,py2-2*DPR,.8);
+    ctx.fillStyle='#a07a48';ctx.fill();
+    ctx.strokeStyle='#6b4a24';ctx.lineWidth=1.6*DPR;ctx.stroke();
+    diamond(sx,py2-4*DPR,.8);
+    ctx.fillStyle='#b98f56';ctx.fill();
+    ctx.strokeStyle='#6b4a24';ctx.lineWidth=1.2*DPR;ctx.stroke();
   }else if(t===5){
     // escalier : base en terre, marches vers la case voisine plus haute
     diamond(sx,sy);
@@ -1913,6 +2223,48 @@ function drawStall(sx,sy){
   }
 }
 
+function drawNPCSprite(c2,sx,sy,npc,bob){
+  const s=DPR,b=bob||0;
+  c2.save();
+  c2.translate(sx,sy-b*s);
+  // robe
+  c2.fillStyle=npc.color;
+  c2.beginPath();
+  c2.moveTo(-8*s,0);c2.lineTo(8*s,0);c2.lineTo(5*s,-22*s);c2.lineTo(-5*s,-22*s);
+  c2.closePath();c2.fill();
+  c2.strokeStyle='rgba(30,25,15,.5)';c2.lineWidth=1.4*s;c2.stroke();
+  // ceinture
+  c2.fillStyle='rgba(30,25,15,.4)';c2.fillRect(-6*s,-12*s,12*s,2.2*s);
+  // tête
+  c2.fillStyle='#f0c9a0';
+  c2.beginPath();c2.arc(0,-27*s,6.5*s,0,6.28);c2.fill();
+  c2.fillStyle='#241c10';
+  c2.beginPath();c2.arc(2*s,-27*s,1*s,0,6.28);c2.fill();
+  c2.beginPath();c2.arc(4.5*s,-27*s,1*s,0,6.28);c2.fill();
+  // couvre-chef
+  if(npc.hat==='straw'){
+    c2.fillStyle='#d9b96a';
+    c2.beginPath();c2.ellipse(0,-31*s,11*s,3.5*s,0,0,6.28);c2.fill();
+    c2.beginPath();c2.arc(0,-32*s,5.5*s,Math.PI,0);c2.fill();
+  }else if(npc.hat==='hood'){
+    c2.fillStyle=npc.color;
+    c2.beginPath();c2.arc(0,-29*s,7.5*s,Math.PI*.9,Math.PI*2.1);c2.fill();
+  }else if(npc.hat==='helm'){
+    c2.fillStyle='#9aa5ad';
+    c2.beginPath();c2.arc(0,-29*s,7*s,Math.PI,0);c2.fill();
+    c2.fillRect(-7*s,-29*s,14*s,2.5*s);
+  }else{ // flower
+    c2.fillStyle='#e878a0';
+    for(let i=0;i<5;i++){
+      const a=i*1.256;
+      c2.beginPath();c2.arc(Math.cos(a)*3*s+4*s,-33*s+Math.sin(a)*3*s,2*s,0,6.28);c2.fill();
+    }
+    c2.fillStyle='#e8c53d';
+    c2.beginPath();c2.arc(4*s,-33*s,1.6*s,0,6.28);c2.fill();
+  }
+  c2.restore();
+}
+
 // ---------- Rendu : personnages ----------
 function drawShadow(sx,sy,w){
   ctx.fillStyle='rgba(15,25,12,.35)';
@@ -2064,6 +2416,16 @@ function frame(t){
   // animations
   updateWalk(p,dt);
   if(G.mode==='combat')for(const f of C.fighters)if(f!==p)updateWalk(f,dt);
+  // décroissance des animations d'attaque et de la secousse
+  const animEnts=G.mode==='combat'?C.fighters:[p];
+  for(const f of animEnts){
+    if(f.lunge){f.lunge.t+=dt*4;if(f.lunge.t>=1)f.lunge=null;}
+    if(f.castT>0)f.castT-=dt;
+    if(f.flash>0)f.flash-=dt;
+  }
+  if(G.shake>0)G.shake=Math.max(0,G.shake-dt*1.2);
+  G.cam.ox=(Math.random()-.5)*G.shake*16;
+  G.cam.oy=(Math.random()-.5)*G.shake*10;
   // caméra
   const targX=isoX(p.px,p.py),targY=isoY(p.px,p.py)-(p.pz||0)*ELEV;
   G.cam.x=lerp(G.cam.x,targX,Math.min(1,dt*5));
@@ -2111,7 +2473,40 @@ function frame(t){
         }
       }});
     }
-    ents.push({d:p.px+p.py,pr:1,draw:()=>{
+    // PNJ avec marqueurs de quête
+    for(const n of map.npcs||[]){
+      ents.push({d:n.x+n.y,pr:1,draw:()=>{
+        const {sx,sy}=screenPos(n.x,n.y);
+        const npc=NPCS[n.id];
+        const bob=Math.sin(G.time*2+n.x*1.7)*1.4;
+        drawShadow(sx,sy,10);
+        drawNPCSprite(ctx,sx,sy,npc,bob);
+        const qf=questFor(n.id);
+        if(qf){
+          const st=questStatus(qf[0]);
+          const glyph=st==='available'?'!':(st==='ready'?'?':null);
+          if(glyph){
+            const yo=Math.sin(G.time*3)*3*DPR;
+            ctx.font=`bold ${17*DPR}px 'Trebuchet MS',sans-serif`;
+            ctx.textAlign='center';
+            ctx.strokeStyle='rgba(0,0,0,.75)';ctx.lineWidth=3.5*DPR;
+            ctx.strokeText(glyph,sx,sy-50*DPR+yo);
+            ctx.fillStyle=st==='available'?'#e8a33d':'#f5c76a';
+            ctx.fillText(glyph,sx,sy-50*DPR+yo);
+          }
+        }
+        if(G.hover&&G.hover.x===n.x&&G.hover.y===n.y){
+          ctx.font=`bold ${11*DPR}px Verdana`;
+          const tw=ctx.measureText(npc.name).width;
+          ctx.fillStyle='rgba(16,22,14,.85)';
+          ctx.fillRect(sx-tw/2-6*DPR,sy-70*DPR,tw+12*DPR,16*DPR);
+          ctx.fillStyle='#cfe8ff';ctx.textAlign='center';
+          ctx.fillText(npc.name,sx,sy-58*DPR);
+        }
+      }});
+    }
+    // profondeur au plafond : un sprite en mouvement doit passer devant la tuile qu'il chevauche
+    ents.push({d:Math.ceil(p.px+p.py-1e-4),pr:1,draw:()=>{
       const {sx,sy}=screenPosE(p.px,p.py,p.pz);
       const bob=p.walk?Math.abs(Math.sin(G.time*14))*3:Math.sin(G.time*2.5)*1.2;
       drawShadow(sx,sy,11);
@@ -2120,8 +2515,17 @@ function frame(t){
   }else{
     for(const f of C.fighters){
       if(!f.alive)continue;
-      ents.push({d:f.px+f.py,pr:1,draw:()=>{
-        const {sx,sy}=screenPosE(f.px,f.py,f.pz);
+      ents.push({d:Math.ceil(f.px+f.py-1e-4),pr:1,draw:()=>{
+        // décalage de charge (attaque au corps à corps)
+        let ax=f.px,ay=f.py;
+        if(f.lunge){
+          const k=Math.sin(Math.min(1,f.lunge.t)*Math.PI)*.38;
+          ax+=f.lunge.dx*k;ay+=f.lunge.dy*k;
+        }
+        const pos=screenPosE(ax,ay,f.pz);
+        const sx=pos.sx;
+        let sy=pos.sy;
+        if(f.castT>0)sy-=Math.sin((.35-f.castT)/.35*Math.PI)*6*DPR; // rebond d'incantation
         const isCur=C.phase==='fight'&&curFighter()===f;
         if(isCur){
           diamond(sx,sy,.9);
@@ -2131,6 +2535,12 @@ function frame(t){
         drawShadow(sx,sy,f.kind==='player'?11:12);
         if(f.kind==='player')drawPlayerSprite(ctx,sx,sy,CLASSES[f.cls],f.face,bob);
         else drawMonsterSprite(ctx,sx,sy,f,bob);
+        if(f.flash>0){ // impact : la silhouette s'illumine
+          ctx.globalAlpha=Math.min(1,f.flash*2.6);
+          ctx.fillStyle='#fff';
+          ctx.beginPath();ctx.arc(sx,sy-14*DPR,13*DPR,0,6.28);ctx.fill();
+          ctx.globalAlpha=1;
+        }
         const hh=f.kind==='monster'&&f.boss?58:44;
         drawHpBar(sx,sy-hh*DPR,f.hp/f.maxhp,34);
         // icônes d'effets
@@ -2150,6 +2560,19 @@ function frame(t){
   for(let i=G.sparks.length-1;i>=0;i--){
     const s=G.sparks[i];
     s.t+=dt;
+    if(s.ring){ // onde de choc à l'impact
+      if(s.t>s.life){G.sparks.splice(i,1);continue;}
+      const pr2=s.t/s.life;
+      const {sx,sy}=screenPosE(s.x,s.y,s.z);
+      ctx.globalAlpha=1-pr2;
+      ctx.strokeStyle=s.color;
+      ctx.lineWidth=(3*(1-pr2)+1)*DPR;
+      ctx.beginPath();
+      ctx.ellipse(sx,sy-8*DPR,(8+pr2*26)*DPR,(4+pr2*13)*DPR,0,0,6.28);
+      ctx.stroke();
+      ctx.globalAlpha=1;
+      continue;
+    }
     if(s.proj){
       const tt2=Math.min(1,s.t/s.life);
       const x=lerp(s.x,s.tx,tt2),y=lerp(s.y,s.ty,tt2)-Math.sin(tt2*Math.PI)*1.2;
@@ -2182,6 +2605,18 @@ function frame(t){
     ctx.fillStyle=f.color;
     ctx.fillText(f.txt,sx,sy-(40+f.t*30)*DPR);
     ctx.globalAlpha=1;
+  }
+  // bulles de chat
+  drawBubbles(dt);
+  // répliques ambiantes des PNJ
+  if(G.mode==='explore'&&(map.npcs||[]).length){
+    G.npcT-=dt;
+    if(G.npcT<=0){
+      G.npcT=9+Math.random()*7;
+      const n=map.npcs[Math.floor(Math.random()*map.npcs.length)];
+      const npc=NPCS[n.id];
+      if(mdist(p,n)<=9)say({px:n.x,py:n.y,pz:zAt(map,n.x,n.y)},npc.lines[Math.floor(Math.random()*npc.lines.length)]);
+    }
   }
   // régén hors combat
   if(G.mode==='explore'&&p.hp<p.maxhp){
@@ -2409,6 +2844,24 @@ cv.addEventListener('click',e=>{
       addLog('Impossible de les atteindre.','#7a5a10');
       return;
     }
+    // clic sur un PNJ
+    const npcHit=(map.npcs||[]).find(n=>n.x===c.x&&n.y===c.y);
+    if(npcHit){
+      if(mdist(p,npcHit)<=1){openNpcDialog(npcHit.id);return;}
+      const adj=DIRS.map(([dx,dy])=>({x:npcHit.x+dx,y:npcHit.y+dy}))
+        .filter(a=>walkable(map,a.x,a.y))
+        .sort((a,b)=>mdist(p,a)-mdist(p,b));
+      for(const a of adj){
+        const path=astar(map,p.x,p.y,a.x,a.y,exploreBlocked());
+        if(path){
+          G.npcIntent=npcHit.id;
+          if(p.walk)G.pendingTarget=a;
+          else walkTo(p,path);
+          return;
+        }
+      }
+      return;
+    }
     // clic sur l'étal du marchand
     if(map.stallPos&&c.x===map.stallPos.x&&c.y===map.stallPos.y){
       if(mdist(p,map.stallPos)<=1){openShop();return;}
@@ -2470,8 +2923,10 @@ cv.addEventListener('click',e=>{
   }
 });
 addEventListener('keydown',e=>{
+  if(document.activeElement===chatinput)return;
   if(G.mode==='title')return;
-  if(e.key>='1'&&e.key<='5')selectSpell(+e.key-1);
+  if(e.key==='Enter'){e.preventDefault();openChat();}
+  else if(e.key>='1'&&e.key<='5')selectSpell(+e.key-1);
   else if(e.key===' '){e.preventDefault();endTurn();}
   else if(e.key==='Escape'){
     if(C.sel){C.sel=null;C.targets=null;syncHUD();return;}
@@ -2485,7 +2940,7 @@ addEventListener('keydown',e=>{
 });
 // ---------- Panneaux (latéraux + superposés) ----------
 const SIDE_PANELS=['charpanel','helppanel','invpanel'];
-const CENTER_PANELS=['menupanel','mappanel','shoppanel'];
+const CENTER_PANELS=['menupanel','mappanel','shoppanel','npcpanel'];
 function anyPanelOpen(){
   return SIDE_PANELS.some(id=>document.getElementById(id).style.display==='block')
     ||CENTER_PANELS.some(id=>document.getElementById(id).classList.contains('open'));
@@ -2668,6 +3123,208 @@ function buildShop(){
     el.onclick=()=>sellItem(el.dataset.sell);
   });
 }
+// ---------- Quêtes ----------
+function questFor(npcId){
+  return Object.entries(QUESTS).find(([qid,q])=>q.giver===npcId)||null;
+}
+function questReady(qid){
+  const q=QUESTS[qid],ps=G.player&&G.player.quests[qid];
+  if(!ps||ps.st!=='active')return false;
+  if(q.need.item)return (G.player.inv[q.need.item]||0)>=q.need.n;
+  return ps.k>=q.need.n;
+}
+function questStatus(qid){
+  const ps=G.player&&G.player.quests[qid];
+  if(!ps)return 'available';
+  if(ps.st==='done')return 'done';
+  return questReady(qid)?'ready':'active';
+}
+function questProgress(qid){
+  const q=QUESTS[qid],ps=G.player.quests[qid];
+  if(q.need.item)return Math.min(q.need.n,G.player.inv[q.need.item]||0);
+  return ps?Math.min(q.need.n,ps.k):0;
+}
+function syncQuests(){
+  const el=document.getElementById('questlog');
+  const p=G.player;
+  if(!p){el.style.display='none';return;}
+  const active=Object.keys(p.quests).filter(qid=>p.quests[qid].st==='active');
+  if(!active.length){el.style.display='none';return;}
+  el.style.display='block';
+  el.innerHTML='<h4>Quêtes</h4>'+active.map(qid=>{
+    const q=QUESTS[qid],pr=questProgress(qid),ready=questReady(qid);
+    return `<div class="qrow${ready?' qready':''}"><b>${q.name}</b><span class="qp">${ready?'✔ à rendre':pr+' / '+q.need.n}</span></div>`;
+  }).join('');
+}
+function openNpcDialog(npcId){
+  const npc=NPCS[npcId];
+  closePanels();
+  const face=document.getElementById('npcface');
+  const c2=face.getContext('2d');
+  c2.clearRect(0,0,128,128);
+  const g=c2.createRadialGradient(64,50,8,64,64,70);
+  g.addColorStop(0,'#3a5a40');g.addColorStop(1,'#243a28');
+  c2.fillStyle=g;c2.fillRect(0,0,128,128);
+  const oldDPR=DPR;DPR=2.6;
+  try{drawNPCSprite(c2,64,112,npc,0);}finally{DPR=oldDPR;}
+  document.getElementById('npcname').textContent=npc.name;
+  const qf=questFor(npcId);
+  const textEl=document.getElementById('npctext');
+  const btns=document.getElementById('npcbtns');
+  const questEl=document.getElementById('npcquest');
+  btns.innerHTML='';
+  const mkBtn=(label,cls,fn)=>{
+    const b=document.createElement('button');
+    b.className='mbtn'+(cls?' '+cls:'');
+    b.textContent=label;
+    b.onclick=()=>{AudioSys.ensure();AudioSys.click();fn();};
+    btns.appendChild(b);
+  };
+  if(qf){
+    const[qid,q]=qf;
+    const st=questStatus(qid);
+    questEl.textContent='Quête : '+q.name;
+    if(st==='available'){
+      textEl.textContent=q.offer;
+      mkBtn('Accepter la quête','',()=>{
+        G.player.quests[qid]={st:'active',k:0};
+        addLog(`Quête acceptée : ${q.name}`,'#e8a33d');
+        say(npcPseudo(npcId),'Merci, voyageur !');
+        syncQuests();saveGame();closePanels();
+      });
+      mkBtn('Plus tard','warn',()=>closePanels());
+      document.getElementById('npcpanel').classList.add('open');
+      return;
+    }
+    if(st==='active'){
+      textEl.textContent=q.progress+` (${questProgress(qid)} / ${q.need.n})`;
+      mkBtn('Fermer','',()=>closePanels());
+      document.getElementById('npcpanel').classList.add('open');
+      return;
+    }
+    if(st==='ready'){
+      textEl.textContent=q.done;
+      mkBtn('Rendre la quête','',()=>{
+        const ps=G.player.quests[qid];
+        if(q.need.item)removeItem(q.need.item,q.need.n);
+        ps.st='done';
+        G.player.gold+=q.reward.gold;
+        addLog(`Quête terminée : ${q.name} (+${q.reward.gold} écus)`,'#f5c76a');
+        if(q.reward.item){addItem(q.reward.item,1);addLog(`Reçu : ${ITEMS[q.reward.item].name}`,'#f5c76a');}
+        AudioSys.win();
+        gainXP(q.reward.xp);
+        syncQuests();syncInv();syncHUD();saveGame();closePanels();
+      });
+      document.getElementById('npcpanel').classList.add('open');
+      return;
+    }
+  }
+  questEl.textContent='';
+  textEl.textContent=npc.lines[Math.floor(Math.random()*npc.lines.length)];
+  mkBtn('Fermer','',()=>closePanels());
+  document.getElementById('npcpanel').classList.add('open');
+}
+function npcPseudo(npcId){
+  const map=getMap(G.mapId);
+  const n=(map.npcs||[]).find(n=>n.id===npcId);
+  if(!n)return null;
+  return {px:n.x,py:n.y,pz:zAt(map,n.x,n.y)};
+}
+// ---------- Chat & bulles ----------
+const chatbar=document.getElementById('chatbar');
+const chatinput=document.getElementById('chatinput');
+function openChat(){chatbar.style.display='block';chatinput.value='';chatinput.focus();}
+function closeChat(){chatbar.style.display='none';chatinput.blur();}
+chatinput.addEventListener('keydown',e=>{
+  e.stopPropagation();
+  if(e.key==='Enter'){
+    const txt=chatinput.value.trim();
+    closeChat();
+    if(txt)sendChat(txt);
+  }else if(e.key==='Escape')closeChat();
+});
+function say(ent,text){
+  if(!ent)return;
+  G.bubbles=G.bubbles.filter(b=>b.ent!==ent);
+  G.bubbles.push({ent,text:String(text).slice(0,120),t:0});
+}
+function sendChat(text){
+  const p=G.player;
+  if(!p)return;
+  say(p,text);
+  addLog(`Vous : ${text}`,'#cfe8ff');
+  // un PNJ ou le marchand proche répond
+  const map=getMap(G.mapId);
+  let reply=null,rpos=null;
+  for(const n of map.npcs||[]){
+    if(mdist(p,n)<=4){reply=NPCS[n.id].lines;rpos={x:n.x,y:n.y};break;}
+  }
+  if(!reply&&map.stallPos&&mdist(p,map.stallPos)<=4){
+    reply=['Approchez, approchez !','Tout doit disparaître !','Mes prix sont doux comme la laine de Bouloufe.'];
+    rpos=map.stallPos;
+  }
+  if(reply){
+    const mapId=G.mapId;
+    setTimeout(()=>{
+      if(G.mapId!==mapId)return;
+      say({px:rpos.x,py:rpos.y,pz:zAt(map,rpos.x,rpos.y)},reply[Math.floor(Math.random()*reply.length)]);
+    },700);
+  }
+}
+function drawBubbles(dt){
+  for(let i=G.bubbles.length-1;i>=0;i--){
+    const b=G.bubbles[i];
+    b.t+=dt;
+    if(b.t>3.5){G.bubbles.splice(i,1);continue;}
+    const e=b.ent;
+    const {sx,sy}=screenPosE(e.px,e.py,e.pz||0);
+    const alpha=b.t>3?(3.5-b.t)*2:1;
+    ctx.font=`${11*DPR}px Verdana`;
+    // découpage en lignes (3 max)
+    const words=b.text.split(' ');
+    const lines=[];let cur='';
+    for(const wd of words){
+      const test=cur?cur+' '+wd:wd;
+      if(ctx.measureText(test).width>150*DPR&&cur){lines.push(cur);cur=wd;}
+      else cur=test;
+      if(lines.length===3)break;
+    }
+    if(cur&&lines.length<3)lines.push(cur);
+    const lw=Math.max(...lines.map(l=>ctx.measureText(l).width))+18*DPR;
+    const lh=14*DPR;
+    const bh=lines.length*lh+10*DPR;
+    const bx=sx-lw/2, by=sy-58*DPR-bh;
+    ctx.globalAlpha=alpha;
+    // bulle
+    ctx.fillStyle='#fdfaf2';
+    ctx.strokeStyle='#503a22';
+    ctx.lineWidth=1.6*DPR;
+    ctx.beginPath();
+    const r=7*DPR;
+    ctx.moveTo(bx+r,by);
+    ctx.arcTo(bx+lw,by,bx+lw,by+bh,r);
+    ctx.arcTo(bx+lw,by+bh,bx,by+bh,r);
+    ctx.arcTo(bx,by+bh,bx,by,r);
+    ctx.arcTo(bx,by,bx+lw,by,r);
+    ctx.closePath();ctx.fill();ctx.stroke();
+    // queue
+    ctx.beginPath();
+    ctx.moveTo(sx-5*DPR,by+bh);
+    ctx.lineTo(sx,by+bh+7*DPR);
+    ctx.lineTo(sx+5*DPR,by+bh);
+    ctx.closePath();
+    ctx.fillStyle='#fdfaf2';ctx.fill();
+    ctx.strokeStyle='#503a22';
+    ctx.beginPath();
+    ctx.moveTo(sx-5*DPR,by+bh);ctx.lineTo(sx,by+bh+7*DPR);ctx.lineTo(sx+5*DPR,by+bh);
+    ctx.stroke();
+    // texte
+    ctx.fillStyle='#2b2416';
+    ctx.textAlign='center';
+    lines.forEach((l,li)=>ctx.fillText(l,sx,by+8*DPR+lh*(li+.7)));
+    ctx.globalAlpha=1;
+  }
+}
 // ---------- Boutons ----------
 document.getElementById('btnMenu').onclick=()=>{AudioSys.ensure();toggleCenter('menupanel');};
 document.getElementById('btnMap').onclick=()=>{AudioSys.ensure();toggleCenter('mappanel');};
@@ -2742,6 +3399,7 @@ function resumeGame(d){
   p.lvl=d.lvl;p.xp=d.xp;p.gold=d.gold;
   p.inv=d.inv||{potion1:1};
   p.equip=Object.assign({arme:null,armure:null,amulette:null,anneau:null},d.equip||{});
+  p.quests=d.quests||{};
   p.maxhp=playerMaxHp(p);p.hp=clamp(d.hp,1,p.maxhp);
   G.won=!!d.won;
   G.visited=new Set(d.visited&&d.visited.length?d.visited:['1,1']);
@@ -2769,7 +3427,7 @@ function launch(x,y){
   g.addColorStop(0,'#3a5a40');g.addColorStop(1,'#243a28');
   c2.fillStyle=g;c2.fillRect(0,0,112,112);
   drawPlayerSpriteScaled(c2,56,96,CLASSES[p.cls],1,2.4);
-  syncHUD();syncInv();
+  syncHUD();syncInv();syncQuests();
   Music.play('explore');
   addLog('Bienvenue dans les Terres d’Ébrume !','#e8a33d');
   addLog('Cliquez pour vous déplacer. Touche H pour l’aide.','#e8a33d');
@@ -2778,10 +3436,11 @@ function launch(x,y){
 buildTitle();
 
 // hooks de debug/test (non documentés dans l'UI)
-window.EBRUME={G,C,startCombat,getMap,CLASSES,SPELLS,MONSTERS,ITEMS,Music,AudioSys,
+window.EBRUME={G,C,startCombat,getMap,CLASSES,SPELLS,MONSTERS,ITEMS,NPCS,QUESTS,Music,AudioSys,
   startNewGame,beginFight,endTurn,selectSpell,castSpell,
   addItem,useItem,equipItem,buyItem,sellItem,openShop,quitToTitle,
-  canStep,zAt,toggleCenter,togglePanel,buildWorldMap,syncInv};
+  canStep,zAt,toggleCenter,togglePanel,buildWorldMap,syncInv,
+  sendChat,say,openNpcDialog,questStatus,questReady,syncQuests};
 </script>
 </body>
 </html>

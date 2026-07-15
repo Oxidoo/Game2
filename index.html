@@ -192,12 +192,6 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--forest
   font:bold 10px var(--font-ui);letter-spacing:.08em;text-transform:uppercase;
   background:var(--walnut);color:var(--parchment);
 }
-#continueBtn{
-  padding:12px 30px;border-radius:8px;cursor:pointer;
-  font:bold 15px var(--font-disp);
-  background:linear-gradient(180deg,var(--amber2),var(--amber));
-  border:2px solid #8a5c14;color:#3c2a08;box-shadow:0 3px 0 #8a5c14;
-}
 #title .hint{color:#8f866c;font-size:11px;max-width:520px;text-align:center;line-height:1.7;}
 
 /* ================= Tooltip ================= */
@@ -238,6 +232,95 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--forest
   background:linear-gradient(180deg,#e2685a,var(--hp));border:2px solid #7e1f16;color:#fff;
   box-shadow:0 3px 0 #7e1f16;
 }
+/* ================= Menu / carte / inventaire / boutique ================= */
+.centerov{
+  position:absolute;inset:0;z-index:45;display:none;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at center,rgba(22,36,26,.45),rgba(10,16,11,.8));
+}
+.centerov.open{display:flex;}
+#menubox{width:280px;padding:20px 22px;text-align:center;}
+#menubox h2{margin:0 0 12px;font:bold 22px var(--font-disp);letter-spacing:.04em;}
+.mbtn{
+  display:block;width:100%;margin:7px 0;padding:11px 10px;border-radius:8px;cursor:pointer;
+  font:bold 13px var(--font-disp);text-align:center;
+  background:linear-gradient(180deg,#fbf2da,var(--parch3));
+  border:2px solid var(--walnut);color:var(--ink);box-shadow:0 2px 0 rgba(0,0,0,.25);
+}
+.mbtn:hover{border-color:var(--amber);transform:translateY(-1px);}
+.mbtn.warn{color:#8a2a1e;}
+.mbtn.off{opacity:.45;cursor:not-allowed;}
+#mapbox{padding:20px 24px;text-align:center;position:relative;}
+#mapbox h2{margin:0 0 12px;font:bold 20px var(--font-disp);}
+#mapgrid{display:grid;grid-template-columns:repeat(3,150px);gap:8px;}
+.mzone{
+  height:82px;border-radius:8px;border:2px solid var(--walnut);
+  background:linear-gradient(160deg,#e9d8ac,var(--parch3));
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  padding:4px;position:relative;
+}
+.mzone .zn{font:bold 12px var(--font-disp);text-wrap:balance;}
+.mzone .zs{font-size:10px;color:#5c4a2a;}
+.mzone.unk{opacity:.55;}
+.mzone.unk .zn{color:#8f866c;font-style:italic;}
+.mzone.cur{border-color:var(--amber);box-shadow:0 0 0 2px var(--amber2);}
+.mzone .here{
+  position:absolute;top:-9px;left:50%;transform:translateX(-50%);
+  background:var(--amber);color:#3c2a08;font:bold 9px var(--font-ui);
+  padding:2px 8px;border-radius:8px;border:1px solid #8a5c14;white-space:nowrap;
+}
+#invpanel{
+  position:absolute;top:70px;right:12px;width:296px;max-height:calc(100% - 200px);
+  overflow-y:auto;padding:14px 16px;z-index:25;display:none;
+}
+#invpanel h3{margin:0 0 8px;font:bold 15px var(--font-disp);border-bottom:2px solid var(--walnut);padding-bottom:5px;}
+#invpanel h4{margin:10px 0 6px;font:bold 12px var(--font-disp);color:#5c4a2a;letter-spacing:.05em;text-transform:uppercase;}
+#eqslots{display:flex;gap:6px;}
+.eqslot{
+  flex:1;height:52px;border-radius:8px;border:2px dashed var(--walnut2);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:9px;color:#8f7a52;cursor:pointer;text-align:center;background:rgba(80,58,34,.06);
+}
+.eqslot.full{border-style:solid;background:#fbf2da;color:var(--ink);}
+.eqslot .ic{font-size:19px;line-height:1.1;}
+.itemrow{
+  display:flex;align-items:center;gap:8px;padding:6px 7px;border-radius:7px;
+  border:1px solid rgba(80,58,34,.35);margin:4px 0;background:rgba(251,242,218,.6);
+  cursor:pointer;font-size:11px;
+}
+.itemrow:hover{border-color:var(--amber);background:#fbf2da;}
+.itemrow .ic{font-size:18px;width:24px;text-align:center;}
+.itemrow .nm{flex:1;}
+.itemrow .nm b{display:block;font-size:12px;}
+.itemrow .nm span{color:#5c4a2a;font-size:10px;}
+.itemrow .act{
+  font:bold 10px var(--font-ui);padding:3px 8px;border-radius:6px;white-space:nowrap;
+  background:var(--walnut);color:var(--parchment);
+}
+.itemrow.dis{opacity:.5;cursor:not-allowed;}
+#shopbox{width:430px;max-height:76vh;display:flex;flex-direction:column;padding:18px 20px;position:relative;}
+#shopbox h2{margin:0 0 4px;font:bold 20px var(--font-disp);text-align:center;}
+#shopbox .sgold{text-align:center;font:bold 13px var(--font-disp);color:#7a5a10;margin-bottom:8px;font-variant-numeric:tabular-nums;}
+#shoptabs{display:flex;gap:6px;margin-bottom:8px;}
+.tabbtn{
+  flex:1;padding:8px;border-radius:8px;cursor:pointer;text-align:center;
+  font:bold 12px var(--font-disp);border:2px solid var(--walnut);background:rgba(80,58,34,.08);
+}
+.tabbtn.cur{background:linear-gradient(180deg,var(--amber2),var(--amber));border-color:#8a5c14;color:#3c2a08;}
+#shoplist{overflow-y:auto;min-height:120px;}
+.slot .lock{
+  position:absolute;inset:0;border-radius:6px;background:rgba(20,14,6,.66);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:#cbb37f;font:bold 9px var(--font-ui);gap:1px;
+}
+.slot .lock .li{font-size:14px;}
+.slot.locked{cursor:not-allowed;}
+.slot.locked:hover{transform:none;border-color:var(--walnut);}
+.ccard .badge{margin-top:8px;font:bold 11px var(--font-ui);color:#7a5a10;}
+.ccard .newlink{display:inline-block;margin-top:5px;font-size:10px;color:#8a2a1e;text-decoration:underline;cursor:pointer;}
+.closex{
+  position:absolute;top:8px;right:10px;width:24px;height:24px;border-radius:6px;cursor:pointer;
+  background:var(--walnut);color:var(--parchment);font:bold 13px/24px var(--font-ui);text-align:center;
+}
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01s !important;transition-duration:.01s !important;}
 }
@@ -261,9 +344,12 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--forest
   </div>
 
   <div id="topbtns">
+    <div class="tb wood" id="btnMenu" title="Menu (Échap)">≡</div>
+    <div class="tb wood" id="btnMap" title="Carte du monde (M)">🗺</div>
+    <div class="tb wood" id="btnInv" title="Inventaire (I)">🎒</div>
     <div class="tb wood" id="btnChar" title="Personnage (C)">C</div>
     <div class="tb wood" id="btnHelp" title="Aide (H)">?</div>
-    <div class="tb wood" id="btnMute" title="Son (M)">♪</div>
+    <div class="tb wood" id="btnMute" title="Couper tout le son">♪</div>
   </div>
 
   <div id="timeline"></div>
@@ -301,10 +387,43 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--forest
 
   <div id="helppanel" class="panel">
     <h3>Comment jouer</h3>
-    <p><b>Exploration :</b> cliquez sur le sol pour vous déplacer. Cliquez sur un groupe de monstres pour l'attaquer. Les bords de carte mènent aux zones voisines.</p>
-    <p><b>Combat :</b> à votre tour, cliquez une case verte pour marcher (coûte des <b style="color:var(--mp)">PM</b>), choisissez un sort (<kbd>1</kbd>–<kbd>5</kbd>) puis cliquez une cible dans la zone bleue (coûte des <b style="color:var(--ap)">PA</b>).</p>
-    <p><kbd>Espace</kbd> fin de tour · <kbd>Échap</kbd> annuler le sort · <kbd>C</kbd> personnage · <kbd>M</kbd> son</p>
-    <p>La fontaine du village vous soigne entièrement. Votre progression est sauvegardée automatiquement.</p>
+    <p><b>Exploration :</b> cliquez sur le sol pour vous déplacer. Cliquez sur un groupe de monstres pour l'attaquer. Les bords de carte mènent aux zones voisines. Les escaliers permettent de grimper sur les plateaux, les passerelles de franchir l'eau.</p>
+    <p><b>Combat :</b> à votre tour, cliquez une case verte pour marcher (coûte des <b style="color:var(--mp)">PM</b>), choisissez un sort (<kbd>1</kbd>–<kbd>5</kbd>) puis cliquez une cible dans la zone bleue (coûte des <b style="color:var(--ap)">PA</b>). Une potion en combat coûte 2 PA.</p>
+    <p><b>Village :</b> la fontaine vous soigne, le marchand achète votre butin et vend équipement et potions.</p>
+    <p><kbd>Espace</kbd> fin de tour · <kbd>Échap</kbd> menu / annuler · <kbd>I</kbd> inventaire · <kbd>M</kbd> carte · <kbd>C</kbd> personnage</p>
+  </div>
+
+  <div class="centerov" id="menupanel">
+    <div id="menubox" class="panel">
+      <h2>Menu</h2>
+      <div id="menubtns"></div>
+    </div>
+  </div>
+
+  <div class="centerov" id="mappanel">
+    <div id="mapbox" class="panel">
+      <div class="closex" data-close="mappanel">✕</div>
+      <h2>Carte des Terres d'Ébrume</h2>
+      <div id="mapgrid"></div>
+    </div>
+  </div>
+
+  <div id="invpanel" class="panel">
+    <h3>Inventaire</h3>
+    <div id="invbody"></div>
+  </div>
+
+  <div class="centerov" id="shoppanel">
+    <div id="shopbox" class="panel">
+      <div class="closex" data-close="shoppanel">✕</div>
+      <h2>Marché de Brume</h2>
+      <div class="sgold">Vos écus : <span id="shopgold">0</span></div>
+      <div id="shoptabs">
+        <div class="tabbtn cur" data-tab="buy">Acheter</div>
+        <div class="tabbtn" data-tab="sell">Vendre</div>
+      </div>
+      <div id="shoplist"></div>
+    </div>
   </div>
 
   <div id="tip" class="panel"></div>
@@ -313,10 +432,9 @@ html,body{margin:0;padding:0;height:100%;overflow:hidden;background:var(--forest
     <h1>Les Terres d'Ébrume</h1>
     <div class="tag">Chroniques tactiques</div>
     <div id="classes"></div>
-    <button id="continueBtn" style="display:none;">▶ Continuer la partie</button>
     <p class="hint">Un RPG tactique au tour par tour, dans la lignée des grands jeux de tactique isométrique.
-    Explorez neuf zones, affrontez les créatures d'Ébrume, gagnez des niveaux, débloquez cinq sorts
-    et terrassez le Roi Bouloufe. Tout se joue à la souris — aucune installation.</p>
+    Explorez neuf zones, grimpez sur les plateaux, franchissez les passerelles, équipez-vous au marché,
+    débloquez cinq sorts et terrassez le Roi Bouloufe. Chaque classe a sa propre sauvegarde.</p>
   </div>
 </div>
 
@@ -341,6 +459,7 @@ const key=(x,y)=>x+','+y;
 const TW=64, TH=32;          // taille des losanges iso
 const MW=17, MH=17;          // dimensions d'une carte
 const BASE_PA=6, BASE_PM=3;
+const ELEV=18;               // hauteur d'un niveau de relief, en pixels monde
 
 // ---------- Données : classes ----------
 const CLASSES={
@@ -406,28 +525,49 @@ const SPELLS={
 
 // ---------- Données : monstres ----------
 const MONSTERS={
-  bouloufe:{id:'bouloufe',name:'Bouloufe',hp:30,dmg:[5,8],mp:3,rmin:1,rmax:1,init:20,xp:26,gold:[2,5],attacks:1,color:'#cbb6e6',
-    atkName:'Coup de boule'},
-  zippiaf:{id:'zippiaf',name:'Zippiaf',hp:18,dmg:[4,6],mp:5,rmin:1,rmax:1,init:60,xp:20,gold:[1,4],attacks:2,color:'#e8c53d',
-    atkName:'Bec vif'},
-  champodo:{id:'champodo',name:'Champodo',hp:32,dmg:[6,9],mp:2,rmin:2,rmax:5,init:30,xp:42,gold:[3,7],attacks:1,color:'#d1662e',
-    atkName:'Spore urticante'},
-  grouilleux:{id:'grouilleux',name:'Grouilleux',hp:58,dmg:[9,13],mp:2,rmin:1,rmax:1,init:10,xp:66,gold:[5,10],attacks:1,color:'#7a6a4a',
-    atkName:'Poing de boue'},
-  roi:{id:'roi',name:'Roi Bouloufe',hp:170,dmg:[12,17],mp:3,rmin:1,rmax:1,init:40,xp:520,gold:[60,90],attacks:2,color:'#9a7fd1',boss:true,
-    atkName:'Charge royale'},
+  bouloufe:{id:'bouloufe',name:'Bouloufe',hp:30,dmg:[5,8],mp:3,rmin:1,rmax:1,init:20,xp:26,gold:[5,12],attacks:1,color:'#cbb6e6',
+    atkName:'Coup de boule',drop:'laine'},
+  zippiaf:{id:'zippiaf',name:'Zippiaf',hp:18,dmg:[4,6],mp:5,rmin:1,rmax:1,init:60,xp:20,gold:[4,10],attacks:2,color:'#e8c53d',
+    atkName:'Bec vif',drop:'plume'},
+  champodo:{id:'champodo',name:'Champodo',hp:32,dmg:[6,9],mp:2,rmin:2,rmax:5,init:30,xp:42,gold:[8,16],attacks:1,color:'#d1662e',
+    atkName:'Spore urticante',drop:'spore'},
+  grouilleux:{id:'grouilleux',name:'Grouilleux',hp:58,dmg:[9,13],mp:2,rmin:1,rmax:1,init:10,xp:66,gold:[12,24],attacks:1,color:'#7a6a4a',
+    atkName:'Poing de boue',drop:'boue'},
+  roi:{id:'roi',name:'Roi Bouloufe',hp:170,dmg:[12,17],mp:3,rmin:1,rmax:1,init:40,xp:520,gold:[150,220],attacks:2,color:'#9a7fd1',boss:true,
+    atkName:'Charge royale',drop:'couronne'},
 };
+
+// ---------- Données : objets ----------
+const ITEMS={
+  potion1:{name:'Potion mineure',type:'conso',heal:30,buy:15,icon:'🧪',desc:'Rend 30 PV. En combat : 2 PA.'},
+  potion2:{name:'Potion majeure',type:'conso',heal:80,buy:40,icon:'⚗️',desc:'Rend 80 PV. En combat : 2 PA.'},
+  arme1:{name:'Arme de fer',type:'arme',pct:.08,buy:60,icon:'⚔️',desc:'+8 % de dégâts.'},
+  arme2:{name:"Arme d'acier",type:'arme',pct:.18,buy:180,icon:'⚔️',desc:'+18 % de dégâts.'},
+  arme3:{name:'Arme royale',type:'arme',pct:.30,buy:450,icon:'🗡️',desc:'+30 % de dégâts.'},
+  armure1:{name:'Cuirasse de cuir',type:'armure',hp:25,buy:70,icon:'🛡️',desc:'+25 PV max.'},
+  armure2:{name:'Cuirasse de fer',type:'armure',hp:55,buy:200,icon:'🛡️',desc:'+55 PV max.'},
+  armure3:{name:"Cuirasse d'Ébrume",type:'armure',hp:100,buy:500,icon:'🛡️',desc:'+100 PV max.'},
+  amulette:{name:'Amulette du temps',type:'amulette',pa:1,buy:800,icon:'📿',desc:'+1 PA en combat.'},
+  anneau:{name:'Anneau de vent',type:'anneau',pm:1,buy:650,icon:'💍',desc:'+1 PM en combat.'},
+  laine:{name:'Laine de Bouloufe',type:'butin',sell:4,icon:'🧶',desc:'Se vend au marché.'},
+  plume:{name:'Plume de Zippiaf',type:'butin',sell:3,icon:'🪶',desc:'Se vend au marché.'},
+  spore:{name:'Spore de Champodo',type:'butin',sell:7,icon:'🍄',desc:'Se vend au marché.'},
+  boue:{name:'Boue de Grouilleux',type:'butin',sell:9,icon:'🟤',desc:'Se vend au marché.'},
+  couronne:{name:'Couronne royale',type:'butin',sell:250,icon:'👑',desc:'Le trophée du Roi. Se vend très cher.'},
+};
+const EQUIP_SLOTS=['arme','armure','amulette','anneau'];
+function sellPrice(it){return it.sell||Math.floor((it.buy||0)/2);}
 
 // ---------- Données : monde (3×3) ----------
 const ZONES={
   '1,1':{name:'Bourg de Brume',sub:'Village — zone paisible',tier:0,seed:11},
   '1,0':{name:'Prairie des Bouloufes',sub:'Danger ★',tier:1,seed:21},
-  '0,1':{name:"Lisière d'Ébrume",sub:'Danger ★',tier:1,seed:31},
+  '0,1':{name:"Lisière d'Ébrume",sub:'Danger ★',tier:1,seed:31,river:'v'},
   '2,1':{name:'Champs Dorés',sub:'Danger ★',tier:1,seed:41},
-  '1,2':{name:'Marais Bruineux',sub:'Danger ★★',tier:1,seed:51},
+  '1,2':{name:'Marais Bruineux',sub:'Danger ★★',tier:2,seed:51,river:'h'},
   '0,0':{name:'Bois des Zippiafs',sub:'Danger ★★',tier:2,seed:61},
   '2,0':{name:'Collines Rousses',sub:'Danger ★★',tier:2,seed:71},
-  '0,2':{name:'Tourbière Sombre',sub:'Danger ★★★',tier:2,seed:81},
+  '0,2':{name:'Tourbière Sombre',sub:'Danger ★★★',tier:2,seed:81,river:'h'},
   '2,2':{name:'Antre du Roi',sub:'⚠ Repaire du boss',tier:3,seed:91},
 };
 const TIER_COMPS={
@@ -438,10 +578,11 @@ const TIER_COMPS={
 
 // ---------- Audio (synthèse WebAudio, aucun fichier) ----------
 const AudioSys={
-  ctx:null,muted:false,
-  ensure(){if(!this.ctx){try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}},
+  ctx:null,muted:false,sfxOn:true,
+  ensure(){if(!this.ctx){try{this.ctx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+    if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();},
   tone(f,dur,type,vol,slide){
-    if(this.muted||!this.ctx)return;
+    if(this.muted||!this.sfxOn||!this.ctx)return;
     const t=this.ctx.currentTime;
     const o=this.ctx.createOscillator(),g=this.ctx.createGain();
     o.type=type||'square';o.frequency.setValueAtTime(f,t);
@@ -460,6 +601,92 @@ const AudioSys={
   lose(){[330,262,196].forEach((f,i)=>setTimeout(()=>this.tone(f,.3,'sawtooth',.07),i*180));},
 };
 
+// ---------- Musique de fond (séquenceur WebAudio) ----------
+const NF=n=>440*Math.pow(2,(n-69)/12);
+// thème d'exploration : pentatonique de la mineur, calme (croches à 84 bpm)
+const EXP_BASS=[45,-1,-1,-1,45,-1,-1,-1,41,-1,-1,-1,43,-1,-1,-1,45,-1,-1,-1,45,-1,-1,-1,40,-1,-1,-1,43,-1,-1,-1];
+const EXP_LEAD=[69,-1,72,-1,76,-1,74,72,-1,-1,69,-1,67,-1,64,-1,69,-1,72,-1,76,-1,79,76,74,-1,72,-1,69,-1,-1,-1];
+// thème de combat : riff mineur nerveux (croches à 140 bpm)
+const CMB_BASS=[33,33,-1,33,36,-1,33,-1,31,31,-1,31,38,-1,36,-1];
+const CMB_LEAD=[69,-1,-1,72,-1,74,-1,-1,76,-1,74,72,-1,74,-1,-1];
+const Music={
+  on:true,cur:null,stepI:0,nextT:0,iv:null,gain:null,noiseBuf:null,
+  ensure(){
+    AudioSys.ensure();
+    if(!AudioSys.ctx)return false;
+    if(!this.gain){
+      this.gain=AudioSys.ctx.createGain();
+      this.gain.gain.value=.4;
+      this.gain.connect(AudioSys.ctx.destination);
+      const len=AudioSys.ctx.sampleRate*.2;
+      this.noiseBuf=AudioSys.ctx.createBuffer(1,len,AudioSys.ctx.sampleRate);
+      const d=this.noiseBuf.getChannelData(0);
+      for(let i=0;i<len;i++)d[i]=Math.random()*2-1;
+    }
+    return true;
+  },
+  play(kind){
+    if(this.cur===kind)return;
+    this.cur=kind;this.stepI=0;
+    if(!this.ensure())return;
+    this.nextT=AudioSys.ctx.currentTime+.08;
+    if(!this.iv)this.iv=setInterval(()=>this.tick(),60);
+  },
+  stop(){this.cur=null;if(this.iv){clearInterval(this.iv);this.iv=null;}},
+  tick(){
+    if(!this.cur||!this.on||AudioSys.muted||!AudioSys.ctx)return;
+    const ct=AudioSys.ctx.currentTime;
+    if(this.nextT<ct-.5)this.nextT=ct+.05; // rattrapage après un onglet inactif
+    const spb=this.cur==='combat'?60/140/2:60/84/2;
+    while(this.nextT<ct+.18){
+      this.step(this.cur,this.stepI,this.nextT);
+      this.nextT+=spb;this.stepI++;
+    }
+  },
+  note(f,t,d,type,v){
+    const c=AudioSys.ctx,o=c.createOscillator(),g=c.createGain();
+    o.type=type;o.frequency.value=f;
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(v,t+.015);
+    g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g);g.connect(this.gain);
+    o.start(t);o.stop(t+d+.03);
+  },
+  hat(t,v){
+    const c=AudioSys.ctx,s=c.createBufferSource(),g=c.createGain(),f=c.createBiquadFilter();
+    s.buffer=this.noiseBuf;f.type='highpass';f.frequency.value=6000;
+    g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+.05);
+    s.connect(f);f.connect(g);g.connect(this.gain);
+    s.start(t);s.stop(t+.06);
+  },
+  kick(t){
+    const c=AudioSys.ctx,o=c.createOscillator(),g=c.createGain();
+    o.type='sine';
+    o.frequency.setValueAtTime(150,t);
+    o.frequency.exponentialRampToValueAtTime(45,t+.1);
+    g.gain.setValueAtTime(.14,t);g.gain.exponentialRampToValueAtTime(.0001,t+.14);
+    o.connect(g);g.connect(this.gain);o.start(t);o.stop(t+.16);
+  },
+  step(kind,i,t){
+    if(kind==='explore'){
+      const s=i%32;
+      if(EXP_BASS[s]>=0)this.note(NF(EXP_BASS[s]),t,.6,'triangle',.06);
+      if(EXP_LEAD[s]>=0)this.note(NF(EXP_LEAD[s]),t,.4,'sine',.045);
+      if(s===0){ // nappe d'accord, une mesure sur deux
+        const chord=Math.floor(i/32)%2?[57,60,64]:[53,57,60];
+        for(const n of chord)this.note(NF(n),t,5,'sine',.016);
+      }
+    }else{
+      const s=i%16;
+      if(s%4===0)this.kick(t);
+      if(s%2===1)this.hat(t,.025);
+      if(s===4||s===12)this.hat(t,.05);
+      if(CMB_BASS[s]>=0)this.note(NF(CMB_BASS[s]),t,.16,'sawtooth',.05);
+      if(Math.floor(i/16)%2===1&&CMB_LEAD[s]>=0)this.note(NF(CMB_LEAD[s]),t,.14,'square',.03);
+    }
+  },
+};
+
 // ---------- État global ----------
 const G={
   mode:'title',            // title | explore | combat
@@ -472,6 +699,8 @@ const G={
   floats:[],               // textes flottants
   sparks:[],               // particules
   engage:null,             // groupe visé en exploration
+  shopIntent:false,        // en marche vers le marchand
+  visited:new Set(['1,1']),
   won:false,
 };
 const C={ // état combat
@@ -482,13 +711,23 @@ const C={ // état combat
 };
 
 // ---------- Génération de cartes ----------
-// tuiles : 0 herbe, 1 eau, 2 arbre, 3 rocher, 4 fontaine
+// tuiles : 0 herbe, 1 eau, 2 arbre, 3 rocher, 4 fontaine, 5 escalier, 6 passerelle, 7 étal du marchand
+// zg : niveau de relief par case (0 = sol, 1 = plateau)
 function genMap(id){
   const z=ZONES[id], rng=mulberry32(z.seed*7919);
-  const t=[];
-  for(let y=0;y<MH;y++){t.push(new Array(MW).fill(0));}
+  const t=[],zg=[];
+  for(let y=0;y<MH;y++){t.push(new Array(MW).fill(0));zg.push(new Array(MW).fill(0));}
+  const mid=Math.floor(MW/2);
+  // rivière (traversée par des passerelles au niveau des couloirs)
+  if(z.river){
+    const rp=rng()<.5?3+Math.floor(rng()*(mid-5)):mid+2+Math.floor(rng()*(MW-mid-6));
+    for(let i=0;i<MH;i++){
+      if(z.river==='v'){t[i][rp]=1;t[i][rp+1]=1;}
+      else{t[rp][i]=1;t[rp+1][i]=1;}
+    }
+  }
   // lacs (blobs d'eau)
-  const nLakes=1+Math.floor(rng()*2);
+  const nLakes=z.river?1:1+Math.floor(rng()*2);
   for(let l=0;l<nLakes;l++){
     const cx=3+Math.floor(rng()*(MW-6)), cy=3+Math.floor(rng()*(MH-6)), r=1+rng()*1.6;
     for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
@@ -502,29 +741,105 @@ function genMap(id){
     const v=rng();
     if(v<.09)t[y][x]=2;else if(v<.115)t[y][x]=3;
   }
-  // couloirs centraux toujours libres (accès aux sorties)
-  const mid=Math.floor(MW/2);
-  for(let i=0;i<MW;i++){t[mid][i]=0;t[mid-1][i]=0;t[i][mid]=0;t[i][mid-1]=0;}
-  // fontaine au village
-  if(z.tier===0){t[mid-3][mid]=4;}
-  // groupes de monstres
-  const groups=[];
+  // couloirs centraux toujours praticables ; l'eau y devient passerelle
+  for(let i=0;i<MW;i++){
+    for(const[xx,yy]of[[i,mid],[i,mid-1],[mid,i],[mid-1,i]]){
+      t[yy][xx]=t[yy][xx]===1?6:0;
+    }
+  }
+  // plateau surélevé avec escaliers
+  {
+    const pw=3+Math.floor(rng()*3), ph=3+Math.floor(rng()*2);
+    const x0=rng()<.5?1+Math.floor(rng()*Math.max(1,mid-2-pw)):mid+1+Math.floor(rng()*Math.max(1,MW-2-pw-mid));
+    const y0=rng()<.5?1+Math.floor(rng()*Math.max(1,mid-2-ph)):mid+1+Math.floor(rng()*Math.max(1,MH-2-ph-mid));
+    const cells=[];
+    for(let yy=y0;yy<y0+ph;yy++)for(let xx=x0;xx<x0+pw;xx++){
+      if(xx<1||yy<1||xx>=MW-1||yy>=MH-1)continue;
+      if(xx===mid||xx===mid-1||yy===mid||yy===mid-1)continue;
+      if(t[yy][xx]===1||t[yy][xx]===6)continue;
+      zg[yy][xx]=1;cells.push([xx,yy]);
+    }
+    // escaliers : cases du niveau 0 adjacentes au plateau
+    const cand=[];
+    for(const[px,py]of cells){
+      for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){
+        const nx=px+dx,ny=py+dy;
+        if(nx<0||ny<0||nx>=MW||ny>=MH||zg[ny][nx]===1)continue;
+        if(t[ny][nx]!==0&&t[ny][nx]!==2&&t[ny][nx]!==3)continue;
+        cand.push([nx,ny,px,py]);
+      }
+    }
+    if(cand.length){
+      const s1=cand[Math.floor(rng()*cand.length)];
+      let s2=s1,bd=-1;
+      for(const s of cand){
+        const d=Math.abs(s[0]-s1[0])+Math.abs(s[1]-s1[1]);
+        if(d>bd){bd=d;s2=s;}
+      }
+      for(const s of[s1,s2]){
+        t[s[1]][s[0]]=5;zg[s[1]][s[0]]=0;
+        t[s[3]][s[2]]=0; // palier d'arrivée dégagé
+      }
+    }else{
+      for(const[xx,yy]of cells)zg[yy][xx]=0;
+    }
+  }
+  // fontaine et étal du marchand au village
+  if(z.tier===0){
+    t[mid-3][mid]=4;
+    t[mid+2][mid+2]=7;zg[mid+2][mid+2]=0;
+    for(const[dx,dy]of DIRS){
+      const xx=mid+2+dx,yy=mid+2+dy;
+      if(t[yy][xx]===2||t[yy][xx]===3)t[yy][xx]=0;
+    }
+  }
+  const map={id,tiles:t,zg,groups:[],zone:z};
+  if(z.tier===0)map.stallPos={x:mid+2,y:mid+2};
+  // sécurité : toute case surélevée injoignable depuis le centre est aplanie
+  const reach=floodReach(map,mid,mid);
+  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
+    if(zg[y][x]===1&&walkable(map,x,y)&&!reach.has(key(x,y)))zg[y][x]=0;
+  }
+  // escaliers orphelins (plateau aplani) → herbe
+  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
+    if(t[y][x]!==5)continue;
+    const up=DIRS.some(([dx,dy])=>{
+      const nx=x+dx,ny=y+dy;
+      return nx>=0&&ny>=0&&nx<MW&&ny<MH&&zg[ny][nx]>zg[y][x];
+    });
+    if(!up)t[y][x]=0;
+  }
+  const reach2=floodReach(map,mid,mid);
+  // groupes de monstres (uniquement sur des cases atteignables)
   if(z.tier>0){
     const comps=TIER_COMPS[z.tier];
     const n=z.tier===3?1:(z.tier===2?4:3);
     let attempts=0;
-    while(groups.length<n&&attempts<200){
+    while(map.groups.length<n&&attempts<300){
       attempts++;
       const x=2+Math.floor(rng()*(MW-4)), y=2+Math.floor(rng()*(MH-4));
-      if(t[y][x]!==0)continue;
+      if(t[y][x]!==0||!reach2.has(key(x,y)))continue;
       if(Math.abs(x-mid)<3&&Math.abs(y-mid)<3)continue;
-      if(groups.some(g=>Math.abs(g.x-x)+Math.abs(g.y-y)<5))continue;
+      if(map.groups.some(g=>Math.abs(g.x-x)+Math.abs(g.y-y)<5))continue;
       const comp=comps[Math.floor(rng()*comps.length)];
       const lvl=z.tier===3?6:(z.tier*2-1+Math.floor(rng()*2));
-      groups.push({x,y,comp,lvl,alive:true,defeatedAt:0,wobble:rng()*6.28});
+      map.groups.push({x,y,comp,lvl,alive:true,defeatedAt:0,wobble:rng()*6.28});
     }
   }
-  return {id,tiles:t,groups,zone:z};
+  return map;
+}
+function floodReach(map,sx,sy){
+  const seen=new Set([key(sx,sy)]);
+  const q=[{x:sx,y:sy}];
+  while(q.length){
+    const c=q.shift();
+    for(const[dx,dy]of DIRS){
+      const nx=c.x+dx,ny=c.y+dy,k=key(nx,ny);
+      if(seen.has(k)||!canStep(map,c.x,c.y,nx,ny))continue;
+      seen.add(k);q.push({x:nx,y:ny});
+    }
+  }
+  return seen;
 }
 function getMap(id){
   if(!G.maps[id])G.maps[id]=genMap(id);
@@ -541,11 +856,24 @@ function getMap(id){
 function walkable(map,x,y){
   if(x<0||y<0||x>=MW||y>=MH)return false;
   const t=map.tiles[y][x];
-  return t===0||t===4;
+  return t===0||t===4||t===5||t===6;
 }
 function blocksSight(map,x,y){
   const t=map.tiles[y][x];
-  return t===2||t===3;
+  return t===2||t===3||t===7;
+}
+function zAt(map,x,y){
+  const xi=clamp(Math.round(x),0,MW-1),yi=clamp(Math.round(y),0,MH-1);
+  return map.zg[yi][xi];
+}
+// passage d'une case à sa voisine : même niveau, ou dénivelé de 1 via un escalier
+function canStep(map,ax,ay,bx,by){
+  if(!walkable(map,bx,by))return false;
+  const za=map.zg[ay][ax],zb=map.zg[by][bx];
+  const dz=Math.abs(za-zb);
+  if(dz===0)return true;
+  if(dz===1&&(map.tiles[ay][ax]===5||map.tiles[by][bx]===5))return true;
+  return false;
 }
 
 // ---------- Pathfinding ----------
@@ -564,7 +892,7 @@ function astar(map,sx,sy,tx,ty,blocked){
     }
     for(const[dx,dy]of DIRS){
       const nx=cur.x+dx,ny=cur.y+dy;
-      if(!walkable(map,nx,ny))continue;
+      if(!canStep(map,cur.x,cur.y,nx,ny))continue;
       if(blocked&&blocked.has(key(nx,ny))&&!(nx===tx&&ny===ty))continue;
       const g=cur.g+1;
       const k=key(nx,ny);
@@ -584,7 +912,7 @@ function bfsReach(map,sx,sy,maxD,blocked){
     if(c.d>=maxD)continue;
     for(const[dx,dy]of DIRS){
       const nx=c.x+dx,ny=c.y+dy,k=key(nx,ny);
-      if(!walkable(map,nx,ny)||res.has(k))continue;
+      if(!canStep(map,c.x,c.y,nx,ny)||res.has(k))continue;
       if(blocked&&blocked.has(k))continue;
       res.set(k,{d:c.d+1,p:key(c.x,c.y),x:nx,y:ny});
       q.push({x:nx,y:ny,d:c.d+1});
@@ -613,18 +941,106 @@ function newPlayer(clsId){
   return {
     kind:'player', cls:clsId, name:cls.name,
     lvl:1, xp:0, gold:0,
-    x:8, y:8, px:8, py:8, face:1,
+    x:8, y:8, px:8, py:8, pz:0, face:1,
     maxhp:cls.hpBase, hp:cls.hpBase,
     pa:BASE_PA, pm:BASE_PM,
     init:cls.init,
     walk:null, effects:[], alive:true,
     spells:cls.spells.map(id=>({id,cdLeft:0})),
+    inv:{potion1:1}, equip:{arme:null,armure:null,amulette:null,anneau:null},
   };
 }
 function xpForLvl(n){return Math.round(60*(n-1)*(n-1)+50*(n-1));}
-function playerMaxHp(p){const c=CLASSES[p.cls];return c.hpBase+c.hpLvl*(p.lvl-1);}
-function dmgMult(p){return 1+0.06*(p.lvl-1);}
+function playerMaxHp(p){
+  const c=CLASSES[p.cls];
+  const arm=p.equip&&p.equip.armure?ITEMS[p.equip.armure].hp:0;
+  return c.hpBase+c.hpLvl*(p.lvl-1)+arm;
+}
+function dmgMult(p){
+  const w=p.equip&&p.equip.arme?ITEMS[p.equip.arme].pct:0;
+  return (1+0.06*(p.lvl-1))*(1+w);
+}
+function basePA(p){return BASE_PA+(p.equip&&p.equip.amulette?1:0);}
+function basePM(p){return BASE_PM+(p.equip&&p.equip.anneau?1:0);}
 function unlockedSpells(p){return p.spells.filter(s=>SPELLS[s.id].unlock<=p.lvl);}
+
+// ---------- Inventaire ----------
+function addItem(id,n){
+  const p=G.player;
+  p.inv[id]=(p.inv[id]||0)+(n||1);
+}
+function removeItem(id,n){
+  const p=G.player;
+  if(!p.inv[id])return false;
+  p.inv[id]-=(n||1);
+  if(p.inv[id]<=0)delete p.inv[id];
+  return true;
+}
+function useItem(id){
+  const p=G.player,it=ITEMS[id];
+  if(!it||!p.inv[id])return;
+  if(it.type==='conso'){
+    if(p.hp>=p.maxhp){addLog('Vos PV sont déjà au maximum.','#7a5a10');return;}
+    if(G.mode==='combat'){
+      if(C.phase!=='fight'||C.busy||curFighter()!==p){addLog('Pas maintenant.','#7a5a10');return;}
+      if(p.pa<2){addLog('Il faut 2 PA pour boire une potion.','#7a5a10');return;}
+      p.pa-=2;
+    }
+    removeItem(id,1);
+    const amt=Math.min(it.heal,p.maxhp-p.hp);
+    p.hp+=amt;
+    floatText(p.px,p.py,`+${amt}`,'#66c06a');
+    burst(p.px,p.py,'#43a047',10);
+    AudioSys.heal();
+    addLog(`${it.name} : +${amt} PV`,'#43a047');
+    syncHUD();syncInv();saveGame();
+  }else if(EQUIP_SLOTS.includes(it.type)){
+    equipItem(id);
+  }
+}
+function equipItem(id){
+  const p=G.player,it=ITEMS[id];
+  if(G.mode==='combat'){addLog("Impossible de changer d'équipement en combat.",'#7a5a10');return;}
+  const slot=it.type,old=p.equip[slot];
+  removeItem(id,1);
+  p.equip[slot]=id;
+  if(old)addItem(old,1);
+  p.maxhp=playerMaxHp(p);
+  p.hp=Math.min(p.hp,p.maxhp);
+  addLog(`Équipé : ${it.name}`,'#e8a33d');
+  AudioSys.click();
+  syncHUD();syncInv();saveGame();
+}
+function unequipItem(slot){
+  const p=G.player;
+  if(G.mode==='combat'){addLog("Impossible de changer d'équipement en combat.",'#7a5a10');return;}
+  const id=p.equip[slot];
+  if(!id)return;
+  p.equip[slot]=null;
+  addItem(id,1);
+  p.maxhp=playerMaxHp(p);
+  p.hp=Math.min(p.hp,p.maxhp);
+  syncHUD();syncInv();saveGame();
+}
+function buyItem(id){
+  const p=G.player,it=ITEMS[id];
+  if(p.gold<it.buy){addLog('Pas assez d\'écus.','#7a5a10');return;}
+  p.gold-=it.buy;
+  addItem(id,1);
+  addLog(`Acheté : ${it.name} (-${it.buy} écus)`,'#e8a33d');
+  AudioSys.click();
+  syncHUD();syncInv();buildShop();saveGame();
+}
+function sellItem(id){
+  const p=G.player,it=ITEMS[id];
+  if(!p.inv[id])return;
+  const pr=sellPrice(it);
+  removeItem(id,1);
+  p.gold+=pr;
+  addLog(`Vendu : ${it.name} (+${pr} écus)`,'#e8a33d');
+  AudioSys.click();
+  syncHUD();syncInv();buildShop();saveGame();
+}
 
 function gainXP(n){
   const p=G.player;
@@ -645,18 +1061,29 @@ function gainXP(n){
   syncHUD();saveGame();
 }
 
-// ---------- Sauvegarde ----------
+// ---------- Sauvegarde (un emplacement par classe) ----------
 function saveGame(){
   if(!G.player)return;
   const p=G.player;
-  try{localStorage.setItem('ebrume_save',JSON.stringify({
+  try{localStorage.setItem('ebrume_slot_'+p.cls,JSON.stringify({
     cls:p.cls,lvl:p.lvl,xp:p.xp,gold:p.gold,hp:p.hp,
-    map:G.mapId,x:p.x,y:p.y,won:G.won,muted:AudioSys.muted,
+    map:G.mapId,x:p.x,y:p.y,won:G.won,
+    muted:AudioSys.muted,musicOn:Music.on,sfxOn:AudioSys.sfxOn,
+    inv:p.inv,equip:p.equip,visited:[...G.visited],
   }));}catch(e){}
 }
-function loadGame(){
+function loadSlot(clsId){
   try{
-    const d=JSON.parse(localStorage.getItem('ebrume_save'));
+    // migration de l'ancienne sauvegarde unique
+    const old=localStorage.getItem('ebrume_save');
+    if(old){
+      const d=JSON.parse(old);
+      if(d&&CLASSES[d.cls])localStorage.setItem('ebrume_slot_'+d.cls,old);
+      localStorage.removeItem('ebrume_save');
+    }
+  }catch(e){}
+  try{
+    const d=JSON.parse(localStorage.getItem('ebrume_slot_'+clsId));
     if(!d||!CLASSES[d.cls])return null;
     return d;
   }catch(e){return null;}
@@ -678,12 +1105,14 @@ function banner(txt){
   void b.offsetWidth;b.classList.add('show');
 }
 function floatText(x,y,txt,color){
-  G.floats.push({x,y,txt,color,t:0});
+  const z=G.player?zAt(getMap(G.mapId),x,y):0;
+  G.floats.push({x,y,z,txt,color,t:0});
 }
 function burst(x,y,color,n){
+  const z=G.player?zAt(getMap(G.mapId),x,y):0;
   for(let i=0;i<(n||10);i++){
     const a=Math.random()*6.28,s=rnd(.5,2.2);
-    G.sparks.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.2,t:0,color,life:rnd(.4,.8)});
+    G.sparks.push({x,y,z,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.2,t:0,color,life:rnd(.4,.8)});
   }
 }
 
@@ -706,8 +1135,10 @@ function startCombat(group){
   const p=G.player;
   C.active=true;C.phase='place';C.turnCount=0;C.group=group;
   C.fighters=[p];
-  p.effects=[];p.pa=BASE_PA;p.pm=BASE_PM;p.walk=null;
+  p.effects=[];p.pa=basePA(p);p.pm=basePM(p);p.walk=null;
   for(const s of p.spells)s.cdLeft=0;
+  Music.play('combat');
+  closePanels();
   // placement des monstres autour du point du groupe
   const occupied=new Set([key(p.x,p.y)]);
   let gi=0;
@@ -718,7 +1149,7 @@ function startCombat(group){
       for(let dy=-r;dy<=r&&!placed;dy++)for(let dx=-r;dx<=r&&!placed;dx++){
         const nx=group.x+dx,ny=group.y+dy;
         if(!walkable(map,nx,ny)||occupied.has(key(nx,ny)))continue;
-        m.x=nx;m.y=ny;m.px=nx;m.py=ny;occupied.add(key(nx,ny));placed=true;
+        m.x=nx;m.y=ny;m.px=nx;m.py=ny;m.pz=zAt(map,nx,ny);occupied.add(key(nx,ny));placed=true;
       }
     }
     if(placed){C.fighters.push(m);gi++;}
@@ -770,7 +1201,7 @@ function nextTurn(){
   tickEffects(f);
   if(!f.alive){setTimeout(nextTurn,500);return;}
   if(f.kind==='player'){
-    f.pa=BASE_PA;f.pm=BASE_PM;
+    f.pa=basePA(f);f.pm=basePM(f);
     applyMpDebuff(f);
     for(const s of f.spells)if(s.cdLeft>0)s.cdLeft--;
     C.sel=null;C.targets=null;
@@ -848,26 +1279,34 @@ function combatWon(){
   C.active=false;
   const monsters=C.fighters.filter(f=>f.kind==='monster');
   let xp=0,gold=0,hasBoss=false;
+  const drops=[];
   for(const m of monsters){
     xp+=m.xp;
-    const g=MONSTERS[m.tpl].gold;
-    gold+=ri(Math.round(g[0]*(1+0.15*(m.lvl-1))),Math.round(g[1]*(1+0.15*(m.lvl-1))));
+    const tpl=MONSTERS[m.tpl];
+    gold+=ri(Math.round(tpl.gold[0]*(1+0.15*(m.lvl-1))),Math.round(tpl.gold[1]*(1+0.15*(m.lvl-1))));
     if(m.boss)hasBoss=true;
+    if(tpl.drop&&(m.boss||Math.random()<.6)){
+      addItem(tpl.drop,1);
+      drops.push(ITEMS[tpl.drop].name);
+    }
   }
   if(C.group){C.group.alive=false;C.group.defeatedAt=Date.now();}
   endCombatUI();
   G.mode='explore';
+  Music.play('explore');
   G.player.gold+=gold;
   AudioSys.win();
   const wasWon=G.won;
   if(hasBoss)G.won=true;
   gainXP(xp);
-  showResult(true,{xp,gold,boss:hasBoss&&!wasWon});
+  showResult(true,{xp,gold,drops,boss:hasBoss&&!wasWon});
+  syncInv();
   saveGame();
 }
 function combatLost(){
   C.active=false;
   endCombatUI();
+  Music.play('explore');
   AudioSys.lose();
   showResult(false,{});
 }
@@ -884,6 +1323,7 @@ function showResult(victory,data){
     ?`<h2>${data.boss?'Le Roi Bouloufe est tombé !':'Victoire !'}</h2>
       ${data.boss?"<p>Les Terres d'Ébrume respirent enfin. Vous pouvez continuer à explorer et à combattre.</p>":''}
       <p class="gain">+${data.xp} XP&nbsp;&nbsp;·&nbsp;&nbsp;+${data.gold} écus</p>
+      ${data.drops&&data.drops.length?`<p>Butin : ${data.drops.join(', ')}</p>`:''}
       <p>PV restants : ${G.player.hp} / ${G.player.maxhp}</p>
       <div class="btn" id="resBtn">Continuer</div>`
     :`<h2>Défaite…</h2>
@@ -908,10 +1348,10 @@ function selectSpell(idx){
   if(G.mode!=='combat'||C.phase!=='fight'||C.busy)return;
   const p=G.player;
   if(curFighter()!==p)return;
-  const list=unlockedSpells(p);
-  if(idx>=list.length)return;
-  const s=list[idx];
+  if(idx>=p.spells.length)return;
+  const s=p.spells[idx];
   const sp=SPELLS[s.id];
+  if(sp.unlock>p.lvl){addLog(`${sp.name} se débloque au niveau ${sp.unlock}.`,'#7a5a10');return;}
   if(s.cdLeft>0){addLog(`${sp.name} : encore ${s.cdLeft} tour(s) de recharge`,'#7a5a10');return;}
   if(p.pa<sp.pa){addLog(`Pas assez de PA pour ${sp.name}`,'#7a5a10');return;}
   if(C.sel===s){C.sel=null;C.targets=null;syncHUD();return;}
@@ -958,7 +1398,7 @@ async function castSpell(s,cx,cy){
   }
   burst(cx,cy,sp.col,14);
   if(sp.type==='jump'){
-    p.x=cx;p.y=cy;p.px=cx;p.py=cy;
+    p.x=cx;p.y=cy;p.px=cx;p.py=cy;p.pz=zAt(map,cx,cy);
     burst(cx,cy,'#d9a13a',12);
   }else if(sp.type==='buff'){
     p.effects.push({type:'dmgBoost',pct:.35,turns:1});
@@ -994,10 +1434,10 @@ function pushTarget(src,t,n,map){
   const occ=occupiedCells(t);
   for(let i=0;i<n;i++){
     const nx=t.x+dx,ny=t.y+dy;
-    if(!walkable(map,nx,ny)||occ.has(key(nx,ny)))break;
+    if(!canStep(map,t.x,t.y,nx,ny)||occ.has(key(nx,ny)))break;
     t.x=nx;t.y=ny;moved++;
   }
-  t.px=t.x;t.py=t.y;
+  t.px=t.x;t.py=t.y;t.pz=zAt(map,t.x,t.y);
   const blockedCells=n-moved;
   if(blockedCells>0){
     const extra=blockedCells*7;
@@ -1006,8 +1446,10 @@ function pushTarget(src,t,n,map){
   }
 }
 function projectile(x0,y0,x1,y1,color){
+  const map=getMap(G.mapId);
+  const z0=zAt(map,x0,y0),z1=zAt(map,x1,y1);
   return new Promise(res=>{
-    G.sparks.push({proj:true,x:x0,y:y0,tx:x1,ty:y1,t:0,color,life:.28,res});
+    G.sparks.push({proj:true,x:x0,y:y0,z:z0,tx:x1,ty:y1,tz:z1,t:0,color,life:.28,res});
   });
 }
 
@@ -1020,13 +1462,14 @@ function walkTo(ent,path,speed){
 function updateWalk(ent,dt){
   const w=ent.walk;
   if(!w)return;
+  const map=getMap(G.mapId);
   w.t+=dt*1000/w.speed;
   const from=w.step===0?{x:ent.x,y:ent.y}:w.path[w.step-1];
   const to=w.path[w.step];
   if(!to){ent.walk=null;if(w.res)w.res();return;}
   ent.face=to.x>from.x||to.y<from.y?1:(to.x<from.x||to.y>from.y?-1:ent.face);
   if(w.t>=1){
-    ent.x=to.x;ent.y=to.y;ent.px=to.x;ent.py=to.y;
+    ent.x=to.x;ent.y=to.y;ent.px=to.x;ent.py=to.y;ent.pz=zAt(map,to.x,to.y);
     w.step++;w.t=0;
     AudioSys.step();
     if(ent.kind==='player'&&G.mode==='combat'&&C.phase==='fight'){
@@ -1049,6 +1492,7 @@ function updateWalk(ent,dt){
   }else{
     ent.px=lerp(from.x,to.x,w.t);
     ent.py=lerp(from.y,to.y,w.t);
+    ent.pz=lerp(zAt(map,from.x,from.y),zAt(map,to.x,to.y),w.t);
   }
 }
 
@@ -1080,6 +1524,11 @@ function onPlayerArrive(){
     }
     G.engage=null;
   }
+  // arrivée chez le marchand
+  if(G.shopIntent){
+    G.shopIntent=false;
+    if(map.stallPos&&mdist(p,map.stallPos)<=1)openShop();
+  }
   // sorties de carte
   const [mx,my]=G.mapId.split(',').map(Number);
   let nid=null,nx=p.x,ny=p.y;
@@ -1100,7 +1549,9 @@ function changeMap(id,x,y){
       if(walkable(map,x+dx,y+dy)){x=x+dx;y=y+dy;break outer;}
     }
   }
-  p.x=x;p.y=y;p.px=x;p.py=y;p.walk=null;G.pendingTarget=null;G.engage=null;
+  p.x=x;p.y=y;p.px=x;p.py=y;p.pz=zAt(map,x,y);
+  p.walk=null;G.pendingTarget=null;G.engage=null;G.shopIntent=false;
+  G.visited.add(id);
   document.getElementById('zonename').textContent=map.zone.name;
   document.getElementById('zonesub').textContent=map.zone.sub;
   addLog(`— ${map.zone.name} —`,'#e8a33d');
@@ -1176,19 +1627,32 @@ addEventListener('resize',resize);resize();
 
 function isoX(x,y){return (x-y)*TW/2;}
 function isoY(x,y){return (x+y)*TH/2;}
+// position écran d'une case (hauteur lue sur la carte)
 function screenPos(x,y){
+  const map=G.player?getMap(G.mapId):null;
+  const z=map?zAt(map,x,y):0;
+  return screenPosE(x,y,z);
+}
+// position écran avec hauteur explicite (entités en mouvement, projectiles…)
+function screenPosE(x,y,z){
   return {
     sx:(isoX(x,y)-G.cam.x)*DPR+cv.width/2,
-    sy:(isoY(x,y)-G.cam.y)*DPR+cv.height/2,
+    sy:(isoY(x,y)-(z||0)*ELEV-G.cam.y)*DPR+cv.height/2,
   };
 }
 function cellFromScreen(mx,my){
   const wx=(mx*DPR-cv.width/2)/DPR+G.cam.x;
-  const wy=(my*DPR-cv.height/2)/DPR+G.cam.y;
-  const gx=(wx/(TW/2)+wy/(TH/2))/2;
-  const gy=(wy/(TH/2)-wx/(TW/2))/2;
-  const x=Math.round(gx),y=Math.round(gy);
-  return {x,y};
+  const map=G.player?getMap(G.mapId):null;
+  // on teste les niveaux du plus haut au plus bas pour viser les plateaux
+  for(let zz=1;zz>=0;zz--){
+    const wy=(my*DPR-cv.height/2)/DPR+G.cam.y+zz*ELEV;
+    const gx=(wx/(TW/2)+wy/(TH/2))/2;
+    const gy=(wy/(TH/2)-wx/(TW/2))/2;
+    const x=Math.round(gx),y=Math.round(gy);
+    if(x<0||y<0||x>=MW||y>=MH)continue;
+    if(!map||map.zg[y][x]===zz)return {x,y};
+  }
+  return {x:-1,y:-1};
 }
 function diamond(sx,sy,scale){
   const w=TW/2*DPR*(scale||1),h=TH/2*DPR*(scale||1);
@@ -1203,25 +1667,157 @@ function diamond(sx,sy,scale){
 const grassShades=['#7fb04a','#79aa46','#84b64f','#76a544','#81b24c'];
 function tileShade(x,y){return grassShades[(x*7+y*13)%grassShades.length];}
 
-function drawMapTiles(map){
-  for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
-    const t=map.tiles[y][x];
-    const {sx,sy}=screenPos(x,y);
-    if(sx<-80*DPR||sx>cv.width+80*DPR||sy<-100*DPR||sy>cv.height+80*DPR)continue;
-    if(t===1){
-      const wob=Math.sin(G.time*1.8+x*.9+y*1.3)*.06;
-      diamond(sx,sy);
-      ctx.fillStyle=`rgb(${61+wob*40|0},${122+wob*50|0},${181})`;
-      ctx.fill();
-      ctx.strokeStyle='rgba(255,255,255,.10)';ctx.lineWidth=1;ctx.stroke();
-    }else{
-      diamond(sx,sy);
-      ctx.fillStyle=t===4?'#8fbf9a':tileShade(x,y);
-      ctx.fill();
-      ctx.strokeStyle='rgba(30,50,25,.25)';ctx.lineWidth=1;ctx.stroke();
+// dessine une case (avec ses falaises si elle est surélevée)
+function drawTileCell(map,x,y){
+  const t=map.tiles[y][x];
+  const z=map.zg[y][x];
+  const {sx,sy}=screenPosE(x,y,z);
+  if(sx<-90*DPR||sx>cv.width+90*DPR||sy<-120*DPR||sy>cv.height+90*DPR)return;
+  const w=TW/2*DPR,h=TH/2*DPR;
+  // falaises (faces sud-ouest et sud-est)
+  if(z>0){
+    const d=z*ELEV*DPR;
+    ctx.beginPath();
+    ctx.moveTo(sx-w,sy);ctx.lineTo(sx,sy+h);ctx.lineTo(sx,sy+h+d);ctx.lineTo(sx-w,sy+d);
+    ctx.closePath();ctx.fillStyle='#5e4426';ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(sx,sy+h);ctx.lineTo(sx+w,sy);ctx.lineTo(sx+w,sy+d);ctx.lineTo(sx,sy+h+d);
+    ctx.closePath();ctx.fillStyle='#7c5b33';ctx.fill();
+    // liseré d'herbe en haut de falaise
+    ctx.strokeStyle='rgba(90,130,60,.8)';ctx.lineWidth=2*DPR;
+    ctx.beginPath();ctx.moveTo(sx-w,sy);ctx.lineTo(sx,sy+h);ctx.lineTo(sx+w,sy);ctx.stroke();
+  }
+  if(t===1){
+    const wob=Math.sin(G.time*1.8+x*.9+y*1.3)*.06;
+    diamond(sx,sy);
+    ctx.fillStyle=`rgb(${61+wob*40|0},${122+wob*50|0},${181})`;
+    ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.10)';ctx.lineWidth=1;ctx.stroke();
+  }else if(t===6){
+    // passerelle : eau en dessous, planches au-dessus
+    const wob=Math.sin(G.time*1.8+x*.9+y*1.3)*.06;
+    diamond(sx,sy);
+    ctx.fillStyle=`rgb(${61+wob*40|0},${122+wob*50|0},${181})`;ctx.fill();
+    const lift=6*DPR;
+    // pilotis
+    ctx.strokeStyle='#4a3319';ctx.lineWidth=2.5*DPR;
+    ctx.beginPath();ctx.moveTo(sx-w*.55,sy-lift+2*DPR);ctx.lineTo(sx-w*.55,sy+3*DPR);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(sx+w*.55,sy-lift+2*DPR);ctx.lineTo(sx+w*.55,sy+3*DPR);ctx.stroke();
+    diamond(sx,sy-lift,.96);
+    ctx.fillStyle='#9a7444';ctx.fill();
+    ctx.strokeStyle='#6b4a24';ctx.lineWidth=1.4*DPR;ctx.stroke();
+    // rainures des planches
+    ctx.strokeStyle='rgba(74,51,25,.5)';ctx.lineWidth=1*DPR;
+    for(let k=-1;k<=1;k++){
+      ctx.beginPath();
+      ctx.moveTo(sx-w*.5+k*6*DPR,sy-lift-h*.4+k*3*DPR);
+      ctx.lineTo(sx+w*.4+k*6*DPR,sy-lift+h*.4+k*3*DPR);
+      ctx.stroke();
+    }
+  }else if(t===5){
+    // escalier : base en terre, marches vers la case voisine plus haute
+    diamond(sx,sy);
+    ctx.fillStyle='#8a6a3c';ctx.fill();
+    ctx.strokeStyle='rgba(60,42,8,.4)';ctx.lineWidth=1;ctx.stroke();
+    let dir=null;
+    for(const[dx,dy]of DIRS){
+      const nx=x+dx,ny=y+dy;
+      if(nx>=0&&ny>=0&&nx<MW&&ny<MH&&map.zg[ny][nx]>z){dir=[dx,dy];break;}
+    }
+    if(dir){
+      for(let k=0;k<3;k++){
+        const fr=.18+k*.24;
+        const ox=(dir[0]-dir[1])*w*fr;
+        const oy=(dir[0]+dir[1])*h*fr;
+        diamond(sx+ox,sy+oy-((k+1)/3)*ELEV*DPR,.5-k*.06);
+        ctx.fillStyle=k%2?'#a88450':'#96733f';ctx.fill();
+        ctx.strokeStyle='rgba(60,42,8,.45)';ctx.lineWidth=1*DPR;ctx.stroke();
+      }
+    }
+  }else{
+    diamond(sx,sy);
+    ctx.fillStyle=t===4?'#8fbf9a':tileShade(x,y);
+    ctx.fill();
+    ctx.strokeStyle='rgba(30,50,25,.25)';ctx.lineWidth=1;ctx.stroke();
+  }
+}
+// surlignages tactiques, insérés dans la liste de profondeur
+function collectHighlights(map,items){
+  const hl=(x,y,fn)=>items.push({d:x+y,pr:.5,draw:fn});
+  if(G.hover&&walkable(map,G.hover.x,G.hover.y)){
+    const hx=G.hover.x,hy=G.hover.y;
+    hl(hx,hy,()=>{
+      const {sx,sy}=screenPos(hx,hy);
+      diamond(sx,sy,.92);
+      ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=2*DPR;ctx.stroke();
+    });
+  }
+  if(G.mode!=='combat')return;
+  if(C.phase==='place'){
+    for(const c of C.placeCells)hl(c.x,c.y,()=>{
+      const {sx,sy}=screenPos(c.x,c.y);
+      diamond(sx,sy,.85);
+      ctx.fillStyle='rgba(63,127,209,.45)';ctx.fill();
+      ctx.strokeStyle='rgba(63,127,209,.9)';ctx.lineWidth=2*DPR;ctx.stroke();
+    });
+    for(const f of C.fighters){
+      if(f.kind!=='monster')continue;
+      hl(f.x,f.y,()=>{
+        const {sx,sy}=screenPos(f.x,f.y);
+        diamond(sx,sy,.85);
+        ctx.fillStyle='rgba(209,73,60,.35)';ctx.fill();
+      });
+    }
+    return;
+  }
+  if(C.reach&&!C.sel&&!C.busy&&curFighter()===G.player){
+    for(const c of C.reach.values()){
+      if(c.d>G.player.pm)continue;
+      hl(c.x,c.y,()=>{
+        const {sx,sy}=screenPos(c.x,c.y);
+        diamond(sx,sy,.85);
+        ctx.fillStyle='rgba(67,160,71,.30)';ctx.fill();
+      });
+    }
+    if(G.hover&&C.reach.has(key(G.hover.x,G.hover.y))){
+      let k=key(G.hover.x,G.hover.y);
+      while(k){
+        const node=C.reach.get(k);
+        if(!node)break;
+        const nx=node.x,ny=node.y;
+        hl(nx,ny,()=>{
+          const {sx,sy}=screenPos(nx,ny);
+          ctx.beginPath();ctx.arc(sx,sy,4*DPR,0,6.28);
+          ctx.fillStyle='rgba(255,255,255,.85)';ctx.fill();
+        });
+        k=node.p;
+        if(k===key(G.player.x,G.player.y))break;
+      }
     }
   }
-  // sorties (chevrons ambrés)
+  if(C.sel&&C.targets){
+    for(const kk of C.targets){
+      const [x,y]=kk.split(',').map(Number);
+      hl(x,y,()=>{
+        const {sx,sy}=screenPos(x,y);
+        diamond(sx,sy,.85);
+        ctx.fillStyle='rgba(63,127,209,.35)';ctx.fill();
+        ctx.strokeStyle='rgba(63,127,209,.6)';ctx.lineWidth=1*DPR;ctx.stroke();
+      });
+    }
+    const sp=SPELLS[C.sel.id];
+    if(G.hover&&C.targets.has(key(G.hover.x,G.hover.y))){
+      for(const c of areaCells(sp,G.hover.x,G.hover.y)){
+        hl(c.x,c.y,()=>{
+          const {sx,sy}=screenPos(c.x,c.y);
+          diamond(sx,sy,.8);
+          ctx.fillStyle='rgba(209,73,60,.45)';ctx.fill();
+        });
+      }
+    }
+  }
+}
+function drawExitArrows(){
   const [mx,my]=G.mapId.split(',').map(Number);
   const mid=Math.floor(MW/2);
   ctx.fillStyle='rgba(232,163,61,.85)';
@@ -1237,71 +1833,6 @@ function drawMapTiles(map){
     ctx.translate(sx,sy);ctx.scale(DPR*pulse,DPR*pulse);ctx.rotate(a.r);
     ctx.beginPath();ctx.moveTo(-6,-4);ctx.lineTo(2,0);ctx.lineTo(-6,4);ctx.closePath();ctx.fill();
     ctx.restore();
-  }
-}
-function drawCellHighlights(map){
-  // exploration : case survolée
-  if(G.hover&&walkable(map,G.hover.x,G.hover.y)){
-    const {sx,sy}=screenPos(G.hover.x,G.hover.y);
-    diamond(sx,sy,.92);
-    ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=2*DPR;ctx.stroke();
-  }
-  if(G.mode!=='combat')return;
-  if(C.phase==='place'){
-    for(const c of C.placeCells){
-      const {sx,sy}=screenPos(c.x,c.y);
-      diamond(sx,sy,.85);
-      ctx.fillStyle='rgba(63,127,209,.45)';ctx.fill();
-      ctx.strokeStyle='rgba(63,127,209,.9)';ctx.lineWidth=2*DPR;ctx.stroke();
-    }
-    for(const f of C.fighters){
-      if(f.kind!=='monster')continue;
-      const {sx,sy}=screenPos(f.x,f.y);
-      diamond(sx,sy,.85);
-      ctx.fillStyle='rgba(209,73,60,.35)';ctx.fill();
-    }
-    return;
-  }
-  // combat : cases atteignables
-  if(C.reach&&!C.sel&&!C.busy&&curFighter()===G.player){
-    for(const c of C.reach.values()){
-      if(c.d>G.player.pm)continue;
-      const {sx,sy}=screenPos(c.x,c.y);
-      diamond(sx,sy,.85);
-      ctx.fillStyle='rgba(67,160,71,.30)';ctx.fill();
-    }
-    // aperçu du chemin
-    if(G.hover&&C.reach.has(key(G.hover.x,G.hover.y))){
-      let k=key(G.hover.x,G.hover.y);
-      while(k){
-        const node=C.reach.get(k);
-        if(!node)break;
-        const {sx,sy}=screenPos(node.x,node.y);
-        ctx.beginPath();ctx.arc(sx,sy,4*DPR,0,6.28);
-        ctx.fillStyle='rgba(255,255,255,.85)';ctx.fill();
-        k=node.p;
-        if(k===key(G.player.x,G.player.y))break;
-      }
-    }
-  }
-  // portée du sort sélectionné
-  if(C.sel&&C.targets){
-    for(const k of C.targets){
-      const [x,y]=k.split(',').map(Number);
-      const {sx,sy}=screenPos(x,y);
-      diamond(sx,sy,.85);
-      ctx.fillStyle='rgba(63,127,209,.35)';ctx.fill();
-      ctx.strokeStyle='rgba(63,127,209,.6)';ctx.lineWidth=1*DPR;ctx.stroke();
-    }
-    // zone d'effet au survol
-    const sp=SPELLS[C.sel.id];
-    if(G.hover&&C.targets.has(key(G.hover.x,G.hover.y))){
-      for(const c of areaCells(sp,G.hover.x,G.hover.y)){
-        const {sx,sy}=screenPos(c.x,c.y);
-        diamond(sx,sy,.8);
-        ctx.fillStyle='rgba(209,73,60,.45)';ctx.fill();
-      }
-    }
   }
 }
 
@@ -1344,6 +1875,42 @@ function drawFountain(sx,sy){
   ctx.beginPath();ctx.moveTo(sx,sy-2*s);ctx.quadraticCurveTo(sx,sy-(14+h)*s,sx+3*s,sy-(8+h)*s);ctx.stroke();
   ctx.beginPath();ctx.arc(sx,sy-(12+h)*s,1.6*s,0,6.28);
   ctx.fillStyle='#cfe8ff';ctx.fill();
+}
+
+function drawStall(sx,sy){
+  const s=DPR;
+  // ombre
+  ctx.fillStyle='rgba(15,25,12,.35)';
+  ctx.beginPath();ctx.ellipse(sx,sy+2*s,18*s,8*s,0,0,6.28);ctx.fill();
+  // marchand derrière l'étal
+  ctx.fillStyle='#8a5c8f';
+  ctx.beginPath();ctx.moveTo(sx-6*s,sy-14*s);ctx.lineTo(sx+6*s,sy-14*s);ctx.lineTo(sx+5*s,sy-26*s);ctx.lineTo(sx-5*s,sy-26*s);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#f0c9a0';
+  ctx.beginPath();ctx.arc(sx,sy-30*s,5*s,0,6.28);ctx.fill();
+  ctx.fillStyle='#5a3d26';
+  ctx.beginPath();ctx.arc(sx,sy-32*s,5.5*s,Math.PI,0);ctx.fill();
+  // comptoir
+  ctx.fillStyle='#6b4a24';
+  ctx.fillRect(sx-16*s,sy-12*s,32*s,9*s);
+  ctx.fillStyle='#9a7444';
+  ctx.fillRect(sx-16*s,sy-14*s,32*s,3.5*s);
+  // marchandises
+  ctx.fillStyle='#d1493c';ctx.beginPath();ctx.arc(sx-8*s,sy-16*s,2.6*s,0,6.28);ctx.fill();
+  ctx.fillStyle='#e8a33d';ctx.beginPath();ctx.arc(sx-2*s,sy-16*s,2.6*s,0,6.28);ctx.fill();
+  ctx.fillStyle='#5aa7d1';ctx.beginPath();ctx.arc(sx+5*s,sy-16*s,2.6*s,0,6.28);ctx.fill();
+  // poteaux + auvent rayé
+  ctx.strokeStyle='#4a3319';ctx.lineWidth=2*s;
+  ctx.beginPath();ctx.moveTo(sx-17*s,sy-12*s);ctx.lineTo(sx-19*s,sy-40*s);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(sx+17*s,sy-12*s);ctx.lineTo(sx+19*s,sy-40*s);ctx.stroke();
+  for(let i=0;i<6;i++){
+    ctx.fillStyle=i%2?'#e8dcc0':'#c94f3c';
+    ctx.beginPath();
+    ctx.moveTo(sx-21*s+i*7*s,sy-40*s);
+    ctx.lineTo(sx-14*s+i*7*s,sy-40*s);
+    ctx.lineTo(sx-15*s+i*7*s,sy-33*s);
+    ctx.lineTo(sx-20*s+i*7*s,sy-34*s);
+    ctx.closePath();ctx.fill();
+  }
 }
 
 // ---------- Rendu : personnages ----------
@@ -1498,26 +2065,28 @@ function frame(t){
   updateWalk(p,dt);
   if(G.mode==='combat')for(const f of C.fighters)if(f!==p)updateWalk(f,dt);
   // caméra
-  const targX=isoX(p.px,p.py),targY=isoY(p.px,p.py);
+  const targX=isoX(p.px,p.py),targY=isoY(p.px,p.py)-(p.pz||0)*ELEV;
   G.cam.x=lerp(G.cam.x,targX,Math.min(1,dt*5));
   G.cam.y=lerp(G.cam.y,targY,Math.min(1,dt*5));
   // fond
   ctx.fillStyle='#16241a';
   ctx.fillRect(0,0,cv.width,cv.height);
-  drawMapTiles(map);
-  drawCellHighlights(map);
-  // entités triées par profondeur
+  // liste unique triée par profondeur : tuiles (pr 0), surlignages (pr .5), entités (pr 1)
   const ents=[];
   for(let y=0;y<MH;y++)for(let x=0;x<MW;x++){
+    const xx=x,yy=y;
+    ents.push({d:x+y,pr:0,draw:()=>drawTileCell(map,xx,yy)});
     const tt=map.tiles[y][x];
-    if(tt===2)ents.push({d:x+y,draw:()=>{const{sx,sy}=screenPos(x,y);drawTree(sx,sy,x*31+y*17);}});
-    if(tt===3)ents.push({d:x+y,draw:()=>{const{sx,sy}=screenPos(x,y);drawRock(sx,sy,x*13+y*7);}});
-    if(tt===4)ents.push({d:x+y,draw:()=>{const{sx,sy}=screenPos(x,y);drawFountain(sx,sy);}});
+    if(tt===2)ents.push({d:x+y,pr:1,draw:()=>{const{sx,sy}=screenPos(xx,yy);drawTree(sx,sy,xx*31+yy*17);}});
+    if(tt===3)ents.push({d:x+y,pr:1,draw:()=>{const{sx,sy}=screenPos(xx,yy);drawRock(sx,sy,xx*13+yy*7);}});
+    if(tt===4)ents.push({d:x+y,pr:1,draw:()=>{const{sx,sy}=screenPos(xx,yy);drawFountain(sx,sy);}});
+    if(tt===7)ents.push({d:x+y,pr:1,draw:()=>{const{sx,sy}=screenPos(xx,yy);drawStall(sx,sy);}});
   }
+  collectHighlights(map,ents);
   if(G.mode==='explore'){
     for(const g of map.groups){
       if(!g.alive)continue;
-      ents.push({d:g.x+g.y,draw:()=>{
+      ents.push({d:g.x+g.y,pr:1,draw:()=>{
         const {sx,sy}=screenPos(g.x,g.y);
         const bob=Math.sin(G.time*2.2+g.wobble)*2;
         drawShadow(sx,sy,12);
@@ -1542,8 +2111,8 @@ function frame(t){
         }
       }});
     }
-    ents.push({d:p.px+p.py,draw:()=>{
-      const {sx,sy}=screenPos(p.px,p.py);
+    ents.push({d:p.px+p.py,pr:1,draw:()=>{
+      const {sx,sy}=screenPosE(p.px,p.py,p.pz);
       const bob=p.walk?Math.abs(Math.sin(G.time*14))*3:Math.sin(G.time*2.5)*1.2;
       drawShadow(sx,sy,11);
       drawPlayerSprite(ctx,sx,sy,CLASSES[p.cls],p.face,bob);
@@ -1551,8 +2120,8 @@ function frame(t){
   }else{
     for(const f of C.fighters){
       if(!f.alive)continue;
-      ents.push({d:f.px+f.py,draw:()=>{
-        const {sx,sy}=screenPos(f.px,f.py);
+      ents.push({d:f.px+f.py,pr:1,draw:()=>{
+        const {sx,sy}=screenPosE(f.px,f.py,f.pz);
         const isCur=C.phase==='fight'&&curFighter()===f;
         if(isCur){
           diamond(sx,sy,.9);
@@ -1574,8 +2143,9 @@ function frame(t){
       }});
     }
   }
-  ents.sort((a,b)=>a.d-b.d);
+  ents.sort((a,b)=>a.d-b.d||a.pr-b.pr);
   for(const e of ents)e.draw();
+  drawExitArrows();
   // particules
   for(let i=G.sparks.length-1;i>=0;i--){
     const s=G.sparks[i];
@@ -1583,7 +2153,7 @@ function frame(t){
     if(s.proj){
       const tt2=Math.min(1,s.t/s.life);
       const x=lerp(s.x,s.tx,tt2),y=lerp(s.y,s.ty,tt2)-Math.sin(tt2*Math.PI)*1.2;
-      const {sx,sy}=screenPos(x,y);
+      const {sx,sy}=screenPosE(x,y,lerp(s.z,s.tz,tt2));
       ctx.fillStyle=s.color;
       ctx.beginPath();ctx.arc(sx,sy-14*DPR,4*DPR,0,6.28);ctx.fill();
       ctx.fillStyle='rgba(255,255,255,.6)';
@@ -1592,7 +2162,7 @@ function frame(t){
       continue;
     }
     if(s.t>s.life){G.sparks.splice(i,1);continue;}
-    const {sx,sy}=screenPos(s.x+s.vx*s.t,s.y+s.vy*s.t);
+    const {sx,sy}=screenPosE(s.x+s.vx*s.t,s.y+s.vy*s.t,s.z);
     ctx.globalAlpha=1-s.t/s.life;
     ctx.fillStyle=s.color;
     ctx.beginPath();ctx.arc(sx,sy-10*DPR,2.5*DPR,0,6.28);ctx.fill();
@@ -1604,7 +2174,7 @@ function frame(t){
     const f=G.floats[i];
     f.t+=dt;
     if(f.t>1.3){G.floats.splice(i,1);continue;}
-    const {sx,sy}=screenPos(f.x,f.y);
+    const {sx,sy}=screenPosE(f.x,f.y,f.z);
     ctx.globalAlpha=Math.min(1,2.6-f.t*2);
     ctx.font=`bold ${15*DPR}px 'Trebuchet MS',sans-serif`;
     ctx.strokeStyle='rgba(0,0,0,.7)';ctx.lineWidth=3*DPR;
@@ -1698,11 +2268,11 @@ function buildSpellbar(){
   spellbarEl.innerHTML='';
   const p=G.player;
   if(!p)return;
-  const list=unlockedSpells(p);
-  list.forEach((s,i)=>{
+  p.spells.forEach((s,i)=>{
     const sp=SPELLS[s.id];
+    const locked=sp.unlock>p.lvl;
     const slot=document.createElement('div');
-    slot.className='slot';
+    slot.className='slot'+(locked?' locked':'');
     slot.dataset.idx=i;
     const ic=document.createElement('canvas');
     ic.width=96;ic.height=96;
@@ -1710,13 +2280,19 @@ function buildSpellbar(){
     slot.appendChild(ic);
     const k=document.createElement('div');k.className='key';k.textContent=i+1;
     slot.appendChild(k);
+    if(locked){
+      const lk=document.createElement('div');
+      lk.className='lock';
+      lk.innerHTML=`<div class="li">🔒</div>niv ${sp.unlock}`;
+      slot.appendChild(lk);
+    }
     slot.addEventListener('click',()=>selectSpell(i));
-    slot.addEventListener('mouseenter',e=>showTip(sp,s,slot));
+    slot.addEventListener('mouseenter',()=>showTip(sp,s,slot,locked));
     slot.addEventListener('mouseleave',()=>tipEl.style.display='none');
     spellbarEl.appendChild(slot);
   });
 }
-function showTip(sp,s,slot){
+function showTip(sp,s,slot,locked){
   const p=G.player;
   let eff='';
   if(sp.type==='heal')eff=`<span class="heal">Soigne ${sp.dmg[0]}–${sp.dmg[1]} PV</span>`;
@@ -1724,7 +2300,7 @@ function showTip(sp,s,slot){
   else if(sp.type==='jump')eff=`Saut vers une case libre`;
   else if(sp.dmg[1]>0)eff=`<span class="dmg">${Math.round(sp.dmg[0]*dmgMult(p))}–${Math.round(sp.dmg[1]*dmgMult(p))} dégâts</span>`;
   const bits=[
-    `<b>${sp.name}</b>`,
+    `<b>${sp.name}</b>${locked?` <span style="color:#8a2a1e;font-weight:bold">— verrouillé (niveau ${sp.unlock})</span>`:''}`,
     `<span class="cost">${sp.pa} PA</span> · <span class="rng">portée ${sp.rmin}–${sp.rmax}${sp.line?' (en ligne)':''}${sp.los===false?' · sans ligne de vue':''}</span>`,
     eff,
     sp.area==='cross'?'Zone : croix':'',
@@ -1748,16 +2324,16 @@ function syncHUD(){
   const prev=xpForLvl(p.lvl),next=xpForLvl(p.lvl+1);
   document.getElementById('xpfill').style.width=clamp(100*(p.xp-prev)/(next-prev),0,100)+'%';
   const inFight=G.mode==='combat'&&C.phase==='fight';
-  document.getElementById('aptxt').textContent=inFight?p.pa:BASE_PA;
-  document.getElementById('pmtxt').textContent=inFight?p.pm:BASE_PM;
+  document.getElementById('aptxt').textContent=inFight?p.pa:basePA(p);
+  document.getElementById('pmtxt').textContent=inFight?p.pm:basePM(p);
   // slots
-  const list=unlockedSpells(p);
   [...spellbarEl.children].forEach((slot,i)=>{
-    const s=list[i];
+    const s=p.spells[i];
     if(!s)return;
     const sp=SPELLS[s.id];
+    const locked=sp.unlock>p.lvl;
     slot.classList.toggle('sel',C.sel===s);
-    const unusable=inFight&&(s.cdLeft>0||p.pa<sp.pa||curFighter()!==p||C.busy);
+    const unusable=!locked&&inFight&&(s.cdLeft>0||p.pa<sp.pa||curFighter()!==p||C.busy);
     slot.classList.toggle('dis',unusable);
     let cd=slot.querySelector('.cd');
     if(s.cdLeft>0){
@@ -1774,9 +2350,12 @@ function syncHUD(){
       ['Expérience',`${p.xp} / ${xpForLvl(p.lvl+1)}`],
       ['Points de vie',`${p.hp} / ${p.maxhp}`],
       ['Bonus de dégâts',`+${Math.round((dmgMult(p)-1)*100)} %`],
+      ['PA / PM',`${basePA(p)} / ${basePM(p)}`],
       ['Initiative',p.init],
       ['Écus',p.gold],
       ['Sorts connus',`${unlockedSpells(p).length} / 5`],
+      ['Arme',p.equip.arme?ITEMS[p.equip.arme].name:'—'],
+      ['Armure',p.equip.armure?ITEMS[p.equip.armure].name:'—'],
     ].map(([a,b])=>`<div class="row"><span>${a}</span><b>${b}</b></div>`).join('');
   }
 }
@@ -1830,6 +2409,23 @@ cv.addEventListener('click',e=>{
       addLog('Impossible de les atteindre.','#7a5a10');
       return;
     }
+    // clic sur l'étal du marchand
+    if(map.stallPos&&c.x===map.stallPos.x&&c.y===map.stallPos.y){
+      if(mdist(p,map.stallPos)<=1){openShop();return;}
+      const adj=DIRS.map(([dx,dy])=>({x:map.stallPos.x+dx,y:map.stallPos.y+dy}))
+        .filter(a=>walkable(map,a.x,a.y))
+        .sort((a,b)=>mdist(p,a)-mdist(p,b));
+      for(const a of adj){
+        const path=astar(map,p.x,p.y,a.x,a.y,exploreBlocked());
+        if(path){
+          G.shopIntent=true;
+          if(p.walk)G.pendingTarget=a;
+          else walkTo(p,path);
+          return;
+        }
+      }
+      return;
+    }
     if(!walkable(map,c.x,c.y))return;
     G.engage=null;
     if(p.walk){G.pendingTarget=c;return;}
@@ -1840,7 +2436,7 @@ cv.addEventListener('click',e=>{
   // combat
   if(C.phase==='place'){
     if(C.placeCells.some(pc=>pc.x===c.x&&pc.y===c.y)){
-      p.x=c.x;p.y=c.y;p.px=c.x;p.py=c.y;
+      p.x=c.x;p.y=c.y;p.px=c.x;p.py=c.y;p.pz=zAt(map,c.x,c.y);
       AudioSys.click();
     }
     return;
@@ -1878,31 +2474,212 @@ addEventListener('keydown',e=>{
   if(e.key>='1'&&e.key<='5')selectSpell(+e.key-1);
   else if(e.key===' '){e.preventDefault();endTurn();}
   else if(e.key==='Escape'){
-    if(C.sel){C.sel=null;C.targets=null;syncHUD();}
-    document.getElementById('charpanel').style.display='none';
-    document.getElementById('helppanel').style.display='none';
+    if(C.sel){C.sel=null;C.targets=null;syncHUD();return;}
+    if(anyPanelOpen())closePanels();
+    else toggleCenter('menupanel');
   }
   else if(e.key==='c'||e.key==='C')togglePanel('charpanel');
   else if(e.key==='h'||e.key==='H'||e.key==='?')togglePanel('helppanel');
-  else if(e.key==='m'||e.key==='M')toggleMute();
+  else if(e.key==='i'||e.key==='I')togglePanel('invpanel');
+  else if(e.key==='m'||e.key==='M')toggleCenter('mappanel');
 });
+// ---------- Panneaux (latéraux + superposés) ----------
+const SIDE_PANELS=['charpanel','helppanel','invpanel'];
+const CENTER_PANELS=['menupanel','mappanel','shoppanel'];
+function anyPanelOpen(){
+  return SIDE_PANELS.some(id=>document.getElementById(id).style.display==='block')
+    ||CENTER_PANELS.some(id=>document.getElementById(id).classList.contains('open'));
+}
+function closePanels(){
+  for(const id of SIDE_PANELS)document.getElementById(id).style.display='none';
+  for(const id of CENTER_PANELS)document.getElementById(id).classList.remove('open');
+}
 function togglePanel(id){
   const el=document.getElementById(id);
-  const others=id==='charpanel'?'helppanel':'charpanel';
-  document.getElementById(others).style.display='none';
-  el.style.display=el.style.display==='block'?'none':'block';
-  if(id==='charpanel')syncHUD();
+  const wasOpen=el.style.display==='block';
+  closePanels();
+  if(!wasOpen){
+    el.style.display='block';
+    if(id==='charpanel')syncHUD();
+    if(id==='invpanel')syncInv();
+  }
+}
+function toggleCenter(id){
+  const el=document.getElementById(id);
+  const wasOpen=el.classList.contains('open');
+  closePanels();
+  if(!wasOpen){
+    if(id==='menupanel')buildMenu();
+    if(id==='mappanel')buildWorldMap();
+    if(id==='shoppanel')buildShop();
+    el.classList.add('open');
+  }
 }
 function toggleMute(){
   AudioSys.muted=!AudioSys.muted;
   document.getElementById('btnMute').style.opacity=AudioSys.muted?.4:1;
   saveGame();
 }
+// ---------- Menu ----------
+function buildMenu(){
+  const inFight=G.mode==='combat';
+  const rows=[
+    ['resume','▶ Reprendre',''],
+    ['map','🗺 Carte du monde','M'],
+    ['inv','🎒 Inventaire','I'],
+    ['music',`♪ Musique : ${Music.on?'oui':'non'}`,''],
+    ['sfx',`🔔 Effets sonores : ${AudioSys.sfxOn?'oui':'non'}`,''],
+    ['switch','👤 Changer de personnage',''],
+  ];
+  const box=document.getElementById('menubtns');
+  box.innerHTML='';
+  for(const[act,label]of rows){
+    const b=document.createElement('button');
+    b.className='mbtn'+(act==='switch'?(inFight?' off':' warn'):'');
+    b.textContent=label;
+    b.onclick=()=>{
+      AudioSys.ensure();AudioSys.click();
+      if(act==='resume')closePanels();
+      else if(act==='map')toggleCenter('mappanel');
+      else if(act==='inv'){closePanels();togglePanel('invpanel');}
+      else if(act==='music'){Music.on=!Music.on;saveGame();buildMenu();}
+      else if(act==='sfx'){AudioSys.sfxOn=!AudioSys.sfxOn;saveGame();buildMenu();}
+      else if(act==='switch'){
+        if(inFight){addLog('Impossible en plein combat !','#7a5a10');return;}
+        quitToTitle();
+      }
+    };
+    box.appendChild(b);
+  }
+}
+function quitToTitle(){
+  saveGame();
+  closePanels();
+  Music.stop();
+  G.mode='title';
+  G.player=null;
+  document.getElementById('endturn').style.display='none';
+  document.getElementById('timeline').style.display='none';
+  document.getElementById('title').style.display='flex';
+  buildTitle();
+}
+// ---------- Carte du monde ----------
+function buildWorldMap(){
+  const grid=document.getElementById('mapgrid');
+  grid.innerHTML='';
+  for(let y=0;y<3;y++)for(let x=0;x<3;x++){
+    const id=`${x},${y}`;
+    const z=ZONES[id];
+    const seen=G.visited.has(id);
+    const cell=document.createElement('div');
+    cell.className='mzone'+(seen?'':' unk')+(id===G.mapId?' cur':'');
+    cell.innerHTML=seen
+      ?`<div class="zn">${z.name}</div><div class="zs">${z.sub}</div>`
+      :`<div class="zn">Terra incognita</div><div class="zs">Zone inexplorée</div>`;
+    if(id===G.mapId){
+      const h=document.createElement('div');
+      h.className='here';h.textContent='Vous êtes ici';
+      cell.appendChild(h);
+    }
+    grid.appendChild(cell);
+  }
+}
+// ---------- Inventaire ----------
+function syncInv(){
+  const body=document.getElementById('invbody');
+  const p=G.player;
+  if(!body||!p)return;
+  let html='<h4>Équipement</h4><div id="eqslots">';
+  for(const slot of EQUIP_SLOTS){
+    const id=p.equip[slot];
+    html+=id
+      ?`<div class="eqslot full" data-uneq="${slot}" title="${ITEMS[id].name} — ${ITEMS[id].desc} Cliquez pour retirer."><span class="ic">${ITEMS[id].icon}</span>${ITEMS[id].name}</div>`
+      :`<div class="eqslot">${slot}</div>`;
+  }
+  html+='</div><h4>Sac</h4>';
+  const ids=Object.keys(p.inv);
+  if(!ids.length)html+='<p style="font-size:11px;color:#8f7a52;">Votre sac est vide. Les monstres laissent du butin, le marchand du village vend potions et équipement.</p>';
+  for(const id of ids){
+    const it=ITEMS[id];
+    const n=p.inv[id];
+    const act=it.type==='conso'?'Boire':(EQUIP_SLOTS.includes(it.type)?'Équiper':`${sellPrice(it)} écus`);
+    html+=`<div class="itemrow" data-use="${id}" title="${it.desc}">
+      <span class="ic">${it.icon}</span>
+      <span class="nm"><b>${it.name}${n>1?' ×'+n:''}</b><span>${it.desc}</span></span>
+      <span class="act">${act}</span></div>`;
+  }
+  body.innerHTML=html;
+  body.querySelectorAll('[data-use]').forEach(el=>{
+    el.onclick=()=>{AudioSys.ensure();useItem(el.dataset.use);};
+  });
+  body.querySelectorAll('[data-uneq]').forEach(el=>{
+    el.onclick=()=>{AudioSys.ensure();unequipItem(el.dataset.uneq);};
+  });
+}
+// ---------- Boutique ----------
+let shopTab='buy';
+function openShop(){
+  closePanels();
+  shopTab='buy';
+  buildShop();
+  document.getElementById('shoppanel').classList.add('open');
+  AudioSys.click();
+}
+function buildShop(){
+  const p=G.player;
+  if(!p)return;
+  document.getElementById('shopgold').textContent=p.gold;
+  document.querySelectorAll('.tabbtn').forEach(b=>{
+    b.classList.toggle('cur',b.dataset.tab===shopTab);
+    b.onclick=()=>{shopTab=b.dataset.tab;buildShop();};
+  });
+  const list=document.getElementById('shoplist');
+  let html='';
+  if(shopTab==='buy'){
+    for(const id of Object.keys(ITEMS)){
+      const it=ITEMS[id];
+      if(!it.buy)continue;
+      const owned=EQUIP_SLOTS.includes(it.type)&&(p.equip[it.type]===id||p.inv[id]);
+      const poor=p.gold<it.buy;
+      html+=`<div class="itemrow${poor||owned?' dis':''}" data-buy="${id}" title="${it.desc}">
+        <span class="ic">${it.icon}</span>
+        <span class="nm"><b>${it.name}</b><span>${it.desc}</span></span>
+        <span class="act">${owned?'possédé':it.buy+' écus'}</span></div>`;
+    }
+  }else{
+    const ids=Object.keys(p.inv);
+    if(!ids.length)html='<p style="font-size:11px;color:#8f7a52;padding:8px;">Rien à vendre. Le butin des monstres se revend ici.</p>';
+    for(const id of ids){
+      const it=ITEMS[id];
+      html+=`<div class="itemrow" data-sell="${id}" title="${it.desc}">
+        <span class="ic">${it.icon}</span>
+        <span class="nm"><b>${it.name}${p.inv[id]>1?' ×'+p.inv[id]:''}</b><span>${it.desc}</span></span>
+        <span class="act">+${sellPrice(it)} écus</span></div>`;
+    }
+  }
+  list.innerHTML=html;
+  list.querySelectorAll('[data-buy]').forEach(el=>{
+    el.onclick=()=>{
+      if(el.classList.contains('dis'))return;
+      buyItem(el.dataset.buy);
+    };
+  });
+  list.querySelectorAll('[data-sell]').forEach(el=>{
+    el.onclick=()=>sellItem(el.dataset.sell);
+  });
+}
+// ---------- Boutons ----------
+document.getElementById('btnMenu').onclick=()=>{AudioSys.ensure();toggleCenter('menupanel');};
+document.getElementById('btnMap').onclick=()=>{AudioSys.ensure();toggleCenter('mappanel');};
+document.getElementById('btnInv').onclick=()=>{AudioSys.ensure();togglePanel('invpanel');};
 document.getElementById('btnChar').onclick=()=>togglePanel('charpanel');
 document.getElementById('btnHelp').onclick=()=>togglePanel('helppanel');
 document.getElementById('btnMute').onclick=()=>{AudioSys.ensure();toggleMute();};
 document.getElementById('endturn').onclick=()=>{AudioSys.ensure();endTurn();};
 document.getElementById('fightBtn').onclick=()=>{AudioSys.ensure();beginFight();};
+document.querySelectorAll('.closex').forEach(el=>{
+  el.onclick=()=>document.getElementById(el.dataset.close).classList.remove('open');
+});
 
 // ---------- Écran titre ----------
 function buildTitle(){
@@ -1922,19 +2699,26 @@ function buildTitle(){
     c2.fillStyle='rgba(15,25,12,.4)';
     c2.beginPath();c2.ellipse(110,178,54,16,0,0,6.28);c2.fill();
     drawPlayerSpriteScaled(c2,110,180,cls,1,4.2);
+    const save=loadSlot(cls.id);
     const txt=document.createElement('div');
     txt.innerHTML=`<h3 style="color:${cls.color}">${cls.name}</h3>
-      <p>${cls.desc}</p><span class="role">${cls.role}</span>`;
+      <p>${cls.desc}</p><span class="role">${cls.role}</span>`
+      +(save
+        ?`<div class="badge">💾 Niveau ${save.lvl} — cliquez pour reprendre</div><span class="newlink">↻ Recommencer à zéro</span>`
+        :`<div class="badge" style="color:#8f866c;">Nouvelle aventure</div>`);
     card.appendChild(txt);
-    card.onclick=()=>{AudioSys.ensure();AudioSys.click();startNewGame(cls.id);};
+    card.onclick=()=>{
+      AudioSys.ensure();AudioSys.click();
+      const s=loadSlot(cls.id);
+      if(s)resumeGame(s);else startNewGame(cls.id);
+    };
+    const nl=txt.querySelector('.newlink');
+    if(nl)nl.onclick=e=>{
+      e.stopPropagation();
+      AudioSys.ensure();AudioSys.click();
+      startNewGame(cls.id);
+    };
     wrap.appendChild(card);
-  }
-  const save=loadGame();
-  if(save){
-    const btn=document.getElementById('continueBtn');
-    btn.style.display='inline-block';
-    btn.textContent=`▶ Continuer — ${CLASSES[save.cls].name} niveau ${save.lvl}`;
-    btn.onclick=()=>{AudioSys.ensure();AudioSys.click();resumeGame(save);};
   }
 }
 // version du sprite indépendante du DPR global (pour les cartes de classe)
@@ -1944,9 +2728,10 @@ function drawPlayerSpriteScaled(c2,sx,sy,cls,face,scale){
   try{drawPlayerSprite(c2,sx,sy,cls,face,0,1);}finally{DPR=oldDPR;}
 }
 function startNewGame(clsId){
-  try{localStorage.removeItem('ebrume_save');}catch(e){}
+  try{localStorage.removeItem('ebrume_slot_'+clsId);}catch(e){}
   G.player=newPlayer(clsId);
   G.won=false;
+  G.visited=new Set(['1,1']);
   G.mapId='1,1';
   G.maps={};
   launch();
@@ -1955,9 +2740,14 @@ function resumeGame(d){
   G.player=newPlayer(d.cls);
   const p=G.player;
   p.lvl=d.lvl;p.xp=d.xp;p.gold=d.gold;
+  p.inv=d.inv||{potion1:1};
+  p.equip=Object.assign({arme:null,armure:null,amulette:null,anneau:null},d.equip||{});
   p.maxhp=playerMaxHp(p);p.hp=clamp(d.hp,1,p.maxhp);
   G.won=!!d.won;
+  G.visited=new Set(d.visited&&d.visited.length?d.visited:['1,1']);
   AudioSys.muted=!!d.muted;
+  AudioSys.sfxOn=d.sfxOn!==false;
+  Music.on=d.musicOn!==false;
   if(AudioSys.muted)document.getElementById('btnMute').style.opacity=.4;
   G.mapId=ZONES[d.map]?d.map:'1,1';
   G.maps={};
@@ -1979,7 +2769,8 @@ function launch(x,y){
   g.addColorStop(0,'#3a5a40');g.addColorStop(1,'#243a28');
   c2.fillStyle=g;c2.fillRect(0,0,112,112);
   drawPlayerSpriteScaled(c2,56,96,CLASSES[p.cls],1,2.4);
-  syncHUD();
+  syncHUD();syncInv();
+  Music.play('explore');
   addLog('Bienvenue dans les Terres d’Ébrume !','#e8a33d');
   addLog('Cliquez pour vous déplacer. Touche H pour l’aide.','#e8a33d');
   saveGame();
@@ -1987,7 +2778,10 @@ function launch(x,y){
 buildTitle();
 
 // hooks de debug/test (non documentés dans l'UI)
-window.EBRUME={G,C,startCombat,getMap,CLASSES,SPELLS,MONSTERS,startNewGame,beginFight,endTurn,selectSpell,castSpell};
+window.EBRUME={G,C,startCombat,getMap,CLASSES,SPELLS,MONSTERS,ITEMS,Music,AudioSys,
+  startNewGame,beginFight,endTurn,selectSpell,castSpell,
+  addItem,useItem,equipItem,buyItem,sellItem,openShop,quitToTitle,
+  canStep,zAt,toggleCenter,togglePanel,buildWorldMap,syncInv};
 </script>
 </body>
 </html>

@@ -10,14 +10,46 @@ interface tactile (tap pour se déplacer, viser et parler aux PNJ), pincement à
 deux doigts pour zoomer, mises en page dédiées portrait et paysage (encoche
 iPhone gérée), bouton 💬 pour le chat.
 
-## Jouer
+## Jouer en solo
 
 ```
-# option 1 : double-cliquez sur index.html
-# option 2 : servez le dossier
-python3 -m http.server 8000
-# puis ouvrez http://localhost:8000
+# double-cliquez sur index.html, c'est tout
 ```
+
+## Jouer en multijoueur (un seul serveur)
+
+```
+npm install
+node server.js
+# → http://localhost:3000
+```
+
+Ouvrez le jeu : une **salle** est créée et son code apparaît dans l'URL
+(`?room=abc123`). Menu (Échap) → **« 🔗 Copier le lien d'invitation »**, envoyez
+le lien à un ami : il choisit sa classe et apparaît à côté de vous. Ce que
+vous pouvez faire ensemble :
+
+- **Vous voir** vous déplacer en temps réel, avec pseudo au-dessus de la tête
+  (menu → « ✏️ Pseudo » pour le changer) ;
+- **Discuter** : Entrée (ou 💬), le message s'affiche en bulle au-dessus du
+  personnage de son auteur, chez tout le monde ;
+- **Combattre ensemble** : quand un joueur engage un groupe de monstres, un
+  marqueur « ⚔ rejoindre » apparaît pendant sa phase de placement — cliquez
+  dessus pour entrer dans son combat à ses côtés (tour par tour synchronisé,
+  XP et butin pour tous les participants) ;
+- **Vous défier en duel** : cliquez sur un joueur → « ⚔ Défier ». Duel
+  amical : les PV sont restaurés à la fin, aucune perte ;
+- **Échanger** : cliquez sur un joueur → « 🤝 Échanger » — objets et écus,
+  offres verrouillées puis double confirmation.
+
+Pour jouer à distance, hébergez `server.js` sur n'importe quel service Node
+(Render, Railway, Fly.io, un VPS…) ou exposez votre machine avec un tunnel
+(`cloudflared tunnel --url http://localhost:3000`). Un seul processus sert le
+jeu **et** le WebSocket — rien d'autre à configurer. Techniquement : combats
+« hôte-autoritaire » (celui qui lance le combat exécute la logique, les autres
+envoient leurs actions et rejouent les événements), cartes déterministes donc
+identiques chez tous, serveur = simple relais par salle (~250 lignes,
+dépendance unique : `ws`).
 
 ## Le jeu
 

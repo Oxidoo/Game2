@@ -5,7 +5,10 @@ mécaniques de DOFUS (grille isométrique, points d'action et de mouvement, lign
 sorts à zone d'effet). Univers, noms, graphismes et code entièrement originaux.
 
 **Aucune installation, aucune dépendance : un seul fichier.** Ouvrez `index.html`
-dans n'importe quel navigateur moderne, c'est tout.
+dans n'importe quel navigateur moderne, c'est tout. **Jouable sur mobile** :
+interface tactile (tap pour se déplacer, viser et parler aux PNJ), pincement à
+deux doigts pour zoomer, mises en page dédiées portrait et paysage (encoche
+iPhone gérée), bouton 💬 pour le chat.
 
 ## Jouer
 

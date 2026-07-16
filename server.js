@@ -159,6 +159,18 @@ setInterval(()=>{
 },30000);
 
 server.listen(PORT,()=>{
-  console.log(`Les Terres d'Ébrume — serveur prêt sur http://localhost:${PORT}`);
-  console.log(`Partagez : http://<votre-ip>:${PORT}/?room=<code>`);
+  console.log('');
+  console.log(`  Les Terres d'Ébrume — serveur prêt !`);
+  console.log(`  Toi           →  http://localhost:${PORT}`);
+  // adresses locales pour inviter un ami sur le même Wi-Fi
+  const os=require('os');
+  for(const ifaces of Object.values(os.networkInterfaces())){
+    for(const it of ifaces||[]){
+      if(it.family==='IPv4'&&!it.internal){
+        console.log(`  Ami (même Wi-Fi) →  http://${it.address}:${PORT}`);
+      }
+    }
+  }
+  console.log('');
+  console.log('  Laisse cette fenêtre ouverte pendant que vous jouez.');
 });
